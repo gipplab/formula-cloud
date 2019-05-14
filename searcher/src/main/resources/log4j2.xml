@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="system-console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <Pattern>%highlight{[%-4level]}{FATAL=bg_red Bright white, ERROR=bright red, WARN=Bright yellow, INFO=Bright blue, DEBUG=green, TRACE=cyan} %d{HH:mm:ss.SSS} %highlight{[-] %c{1}:%line}{FATAL=magenta, ERROR=magenta, WARN=magenta, INFO=magenta, DEBUG=magenta, TRACE=magenta} - %msg%n</Pattern>
+            </PatternLayout>
+        </Console>
+        <RollingFile name="infoFileLogger" fileName="logs/tfidf-info.log" filePattern="logs/tfidf-info-%d{yyyy-MM-dd}.log" append="false">
+            <PatternLayout>
+                <pattern>[%-5level] %d{HH:mm:ss.SSS} [-] %c{2}:%line - %msg%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <Filters>
+                <ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+        </RollingFile>
+        <RollingFile name="errorFileLogger" fileName="logs/tfidf-error.log" filePattern="logs/tfidf-error-%d{yyyy-MM-dd}.log" append="false">
+            <PatternLayout>
+                <pattern>[%-5level] %d{yy-MM-dd HH:mm:ss.SSS} [%t] %c{5}:%line - %msg%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="system-console" level="INFO"/>
+            <!--AppenderRef ref="infoFileLogger" level="DEBUG"/>
+            <AppenderRef ref="errorFileLogger" level="WARN"/-->
+        </Root>
+    </Loggers>
+</Configuration>
