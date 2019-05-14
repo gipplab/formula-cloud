@@ -36,6 +36,8 @@ task.cancellation.timers.timeout: 15000
 
 # Configure network buffers. See:
 # https://ci.apache.org/projects/flink/flink-docs-stable/ops/config.html#jobmanager
+# It might be necessary to just increase the number of network buffers
+# be careful increasing the min over 800mb -> increase the max instead
 taskmanager.network.memory.fraction: 0.15
 taskmanager.network.memory.min: 128mb
 taskmanager.network.memory.max: 4gb
