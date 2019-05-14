@@ -1,3 +1,27 @@
+###### Project Specific #######
+# Heavy csv collections and results
+**/collections/*.csv
+**/tfidf-results/
+
+# basex configurations
+.basex
+
+# flink configurations
+flink-conf.yaml
+
+##### IntelliJ #####
+# binaries
+out/
+target/
+test-out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+*.iml
+modules.xml
+
+###### JAVA #######
 # Compiled class file
 *.class
 
