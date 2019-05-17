@@ -4,6 +4,9 @@ import mir.formulacloud.searcher.SearcherConfig;
 import org.apache.http.HttpHost;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetRequestBuilder;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.index.IndexResponse;
@@ -17,6 +20,7 @@ import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.client.indices.GetIndexResponse;
+import org.elasticsearch.client.ml.GetRecordsRequest;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -99,7 +103,7 @@ public class ElasticSearchConnector {
         sb.fetchSource(INCLUDE_FIELDS, EXCLUDE_FIELDS);
 
         // optional
-        addSuggestionService(sb, searchQuery);
+//        addSuggestionService(sb, searchQuery);
 
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices(indices);
@@ -115,6 +119,17 @@ public class ElasticSearchConnector {
             return response.getHits();
         } catch (IOException ioe) {
             ioe.printStackTrace();
+            return null;
+        }
+    }
+
+    public GetResponse getID(String id){
+        GetRequest gr = new GetRequest("zbmath", "_doc", id);
+        try {
+            GetResponse res = client.get(gr, RequestOptions.DEFAULT);
+            return res;
+        } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
     }

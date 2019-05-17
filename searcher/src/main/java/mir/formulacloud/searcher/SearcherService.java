@@ -9,6 +9,7 @@ import mir.formulacloud.util.TFIDFLoader;
 import mir.formulacloud.util.XQueryLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.jetbrains.annotations.NotNull;
@@ -122,6 +123,38 @@ public class SearcherService {
         return mathDocs;
     }
 
+    public List<MathDocument> getMathResults(List<String> zbMathIDs){
+        LinkedList<MathDocument> mathDocs = new LinkedList<>();
+        for(String zbID : zbMathIDs){
+            GetResponse res = elasticsearch.getID(zbID);
+            Map<String, Object> info = res.getSource();
+            if (info == null){
+                LOG.info("Didn't find ID " + zbID);
+                continue;
+            }
+
+            String id = info.get(MathDocument.F_ID).toString();
+            Object db = info.get(MathDocument.F_DB);
+            if (db == null || db.toString().isEmpty()){
+                // this document doesn't have math
+                LOG.info("Document " + id + " consists of no math!");
+                continue;
+            }
+
+            MathDocument doc = new MathDocument(id, db.toString(), -1);
+            Object url = info.get(MathDocument.F_URL);
+            if (url != null) doc.setArxivURL(url.toString());
+            mathDocs.add(doc);
+            LOG.info("Retrieved document " + doc.getDocID() +
+                    " (prec. " + doc.getEsSearchPrecision() + ") " +
+                    "[" + doc.getBasexDB() + "]");
+        }
+
+        LOG.info("Done. Found " + mathDocs.size() + " docs.");
+
+        return mathDocs;
+    }
+
     public List<MathDocument> requestMath(List<MathDocument> documents){
         LOG.info("Collecting math for each document from BaseX.");
         documents.forEach(MathDocument::requestMathFromBasex);
@@ -197,6 +230,13 @@ public class SearcherService {
         SearcherConfig config = SearcherConfig.loadConfig(args);
         CLISearcher cliSearcher = new CLISearcher(config);
         cliSearcher.init();
-        cliSearcher.start();
+
+        try {
+            cliSearcher.runZBMath("EigenvalueIDs");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+//        cliSearcher.start();
     }
 }

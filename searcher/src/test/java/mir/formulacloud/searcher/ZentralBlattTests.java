@@ -2,6 +2,8 @@ package mir.formulacloud.searcher;
 
 import mir.formulacloud.beans.*;
 import mir.formulacloud.tfidf.BaseXController;
+import mir.formulacloud.util.Helper;
+import mir.formulacloud.util.SimpleMMLConverter;
 import mir.formulacloud.util.XQueryLoader;
 import org.junit.Before;
 import org.junit.jupiter.api.AfterAll;
@@ -26,8 +28,8 @@ public class ZentralBlattTests {
     private static SearcherService service;
     private static List<MathDocument> mathDocs;
 
-    private static final String collection = "gaussian distribution random sequence";
-    private static final String expr = ".*mi:σ.*";
+    private static final String collection = "Riemann zeta";
+    private static final String expr = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
 //    private static final String expr = "mrow(mo:(,msub(mi:λ,mn:1),mo:,,mi:…,mo:,,msub(mi:λ,mi:n),mo:))";
 
 
@@ -36,7 +38,7 @@ public class ZentralBlattTests {
         XQueryLoader.initMinTermFrequency(10);
 
         config = new SearcherConfig();
-        config.setTfidfData("/opt/arxmliv/tfidf-results");
+        config.setTfidfData("/opt/zbmath/tfidf");
         config.setMinDocumentFrequency(3);
 
         service = new SearcherService(config);
@@ -127,9 +129,20 @@ public class ZentralBlattTests {
         HashMap<String, List<TFIDFMathElement>> elements =
                 service.mapMathDocsToTFIDFElements(mathDocs, DOCS, options);
 
-        LinkedList<TFIDFMathElement> results = service.groupTFIDFElements(elements, MathMergeFunctions.AVG);
+        LinkedList<TFIDFMathElement> results = service.groupTFIDFElements(elements, MathMergeFunctions.MAX);
 
         ArxivTests.testResults(results, expr);
+
+        System.out.println();
+        printPretty(results);
+    }
+
+    private static void printPretty(LinkedList<TFIDFMathElement> results){
+        System.out.println("Pretty Printed Top Results:");
+        for (int i = 0; i < 50; i++){
+            TFIDFMathElement e = results.get(i);
+            System.out.println(e.getScore() + "," + SimpleMMLConverter.stringToMML(e.getExpression()));
+        }
     }
 
     private static void addMathDoc(String collection){

@@ -111,7 +111,7 @@ public class ArxivTests {
     }
 
     public static void testResults(LinkedList<TFIDFMathElement> results, String regex){
-        CLISearcher.checkHits(results, regex, 10);
+        CLISearcher.checkHits(results, regex, 30);
     }
 
     @SuppressWarnings("unused")

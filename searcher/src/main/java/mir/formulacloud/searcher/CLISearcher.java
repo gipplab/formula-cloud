@@ -17,6 +17,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Andre Greiner-Petter
@@ -132,6 +133,21 @@ public class CLISearcher extends SearcherService {
         } else {
             checkHits(results, expected, showNumberOfResults);
         }
+    }
+
+    public void runZBMath(String collection) throws IOException {
+        minEShits = 1;
+        showNumberOfResults = 50;
+        long numberOfDocs = getNumberOfDocuments("zbmath");
+        Path p = Paths.get("data").resolve(collection);
+        List<String> ids = Files.lines(p).collect(Collectors.toList());
+        List<MathDocument> mdocs = getMathResults(ids);
+        mdocs = requestMath(mdocs);
+        HashMap<String, List<TFIDFMathElement>> tfidfMath = mapMathDocsToTFIDFElements(mdocs, numberOfDocs);
+        LinkedList<TFIDFMathElement> results = groupTFIDFElements(tfidfMath, MathMergeFunctions.MAX, minEShits);
+        lastResults = results;
+        wirteResults(Paths.get("data").resolve(collection+"Results.txt"), results);
+        shutdown();
     }
 
     public static void checkHits(LinkedList<TFIDFMathElement> results, String regex, int maxEntries){

@@ -9,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Comparator;
+import java.util.IntSummaryStatistics;
 import java.util.LinkedList;
 
 import static java.util.stream.Collectors.toList;
@@ -76,11 +77,23 @@ public class FrequencyAnalyzer {
         }
     }
 
+    public void generalStats(){
+        IntSummaryStatistics stats = tfidf.getMathElementStream()
+                .mapToInt(e -> e.getDepth())
+                .summaryStatistics();
+        System.out.println(stats);
+    }
+
     public static void main(String[] args) throws IOException {
         Path in = Paths.get(args[0]);
+        if (args.length < 2){
+            FrequencyAnalyzer fa = new FrequencyAnalyzer(in);
+            fa.generalStats();
+            return;
+        }
         Path out = Paths.get(args[1]);
         FrequencyAnalyzer fa = new FrequencyAnalyzer(in);
-//        fa.orderedTotalFrequency(out.resolve("rawFrequencies.txt"));
+        fa.orderedTotalFrequency(out.resolve("rawFrequencies.txt"));
         for ( int i = 1; i <= 10; i++){
             String name = "allMMLDepth" + i + ".txt";
             fa.orderedFrequencyPerDepth(out.resolve(name), i, true);
