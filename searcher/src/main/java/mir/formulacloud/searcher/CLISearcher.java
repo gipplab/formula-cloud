@@ -163,6 +163,7 @@ public class CLISearcher extends SearcherService {
         long numberOfDocs = mdocs.size();
         LOG.info("Done. Total size of documents: " + numberOfDocs);
         LOG.info("Start requesting math from BaseX for all documents.");
+        System.out.println("Total Docs: " + numberOfDocs);
         mdocs = requestMath(mdocs);
         LOG.info("Done requesting all math. Start calculating TF-IDF values.");
         HashMap<String, List<TFIDFMathElement>> tfidfMath = mapMathDocsToTFIDFElements(mdocs, numberOfDocs);
