@@ -28,7 +28,7 @@ public class SearcherConfig {
     @Parameter(names = {"-esMaxHits", "--elasticsearchMaximumHits"}, description = "Set the maximum number of hits from elasticsearch (default is 10).")
     private int elasticsearchMaxHits = 10;
 
-    @Parameter(names = {"-minTF", "--minTermFrequency"}, description = "Set the min term frequency (should be the same as used for creating the TF-IDF values / Default: 5).")
+    @Parameter(names = {"-minTF", "--minTermFrequency"}, description = "Set the min term frequency (should be the same as used for creating the TF-IDF values / Default: 1).")
     private int minTermFrequency = 1;
 
     @Parameter(names = {"-minDF", "--minDocumentFrequency"}, description = "Set the min document frequency (default is 1).")

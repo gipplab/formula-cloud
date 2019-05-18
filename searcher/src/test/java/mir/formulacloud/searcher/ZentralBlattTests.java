@@ -129,7 +129,7 @@ public class ZentralBlattTests {
         HashMap<String, List<TFIDFMathElement>> elements =
                 service.mapMathDocsToTFIDFElements(mathDocs, DOCS, options);
 
-        LinkedList<TFIDFMathElement> results = service.groupTFIDFElements(elements, MathMergeFunctions.MAX);
+        List<TFIDFMathElement> results = service.groupTFIDFElements(elements, MathMergeFunctions.MAX);
 
         ArxivTests.testResults(results, expr);
 
@@ -137,7 +137,7 @@ public class ZentralBlattTests {
         printPretty(results);
     }
 
-    private static void printPretty(LinkedList<TFIDFMathElement> results){
+    private static void printPretty(List<TFIDFMathElement> results){
         System.out.println("Pretty Printed Top Results:");
         for (int i = 0; i < 50; i++){
             TFIDFMathElement e = results.get(i);

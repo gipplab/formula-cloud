@@ -100,7 +100,7 @@ public class ArxivTests {
     private static void compute(TFIDFOptions options, int minHitFrequency){
         HashMap<String, List<TFIDFMathElement>> tfidfMath =
                 service.mapMathDocsToTFIDFElements(mathDocs, DOCS, options);
-        LinkedList<TFIDFMathElement> results = service.groupTFIDFElements(tfidfMath, mergeF, minHitFrequency);
+        List<TFIDFMathElement> results = service.groupTFIDFElements(tfidfMath, mergeF, minHitFrequency);
 
         testResults(results, expected);
     }
@@ -110,7 +110,7 @@ public class ArxivTests {
         service.shutdown();
     }
 
-    public static void testResults(LinkedList<TFIDFMathElement> results, String regex){
+    public static void testResults(List<TFIDFMathElement> results, String regex){
         CLISearcher.checkHits(results, regex, 30);
     }
 

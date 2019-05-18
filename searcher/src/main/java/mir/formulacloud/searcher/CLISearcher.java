@@ -1,11 +1,14 @@
 package mir.formulacloud.searcher;
 
+import com.formulasearchengine.mathmltools.mml.elements.MathDoc;
 import mir.formulacloud.beans.MathDocument;
 import mir.formulacloud.beans.MathElement;
 import mir.formulacloud.beans.MathMergeFunctions;
 import mir.formulacloud.beans.TFIDFMathElement;
 import mir.formulacloud.util.SimpleMMLConverter;
 import mir.formulacloud.util.XQueryLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.search.SearchHits;
 
 import java.io.BufferedWriter;
@@ -23,6 +26,8 @@ import java.util.stream.Collectors;
  * @author Andre Greiner-Petter
  */
 public class CLISearcher extends SearcherService {
+    private static final Logger LOG = LogManager.getLogger(CLISearcher.class.getName());
+
     public static final String NL = System.lineSeparator();
 
     private static final int
@@ -70,7 +75,7 @@ public class CLISearcher extends SearcherService {
 
     private SearcherConfig config;
 
-    private LinkedList<TFIDFMathElement> lastResults = null;
+    private List<TFIDFMathElement> lastResults = null;
 
     public CLISearcher(SearcherConfig config){
         super(config);
@@ -123,7 +128,7 @@ public class CLISearcher extends SearcherService {
         List<MathDocument> mdocs = getMathResults(hits);
         mdocs = requestMath(mdocs);
         HashMap<String, List<TFIDFMathElement>> tfidfMath = mapMathDocsToTFIDFElements(mdocs, numberOfDocs);
-        LinkedList<TFIDFMathElement> results = groupTFIDFElements(tfidfMath, MathMergeFunctions.MAX, minEShits);
+        List<TFIDFMathElement> results = groupTFIDFElements(tfidfMath, MathMergeFunctions.MAX, minEShits);
         lastResults = results;
         if (expected == null || expected.isEmpty()){
             System.out.println("Total Hits: " + results.size());
@@ -144,13 +149,32 @@ public class CLISearcher extends SearcherService {
         List<MathDocument> mdocs = getMathResults(ids);
         mdocs = requestMath(mdocs);
         HashMap<String, List<TFIDFMathElement>> tfidfMath = mapMathDocsToTFIDFElements(mdocs, numberOfDocs);
-        LinkedList<TFIDFMathElement> results = groupTFIDFElements(tfidfMath, MathMergeFunctions.MAX, minEShits);
+        List<TFIDFMathElement> results = groupTFIDFElements(tfidfMath, MathMergeFunctions.MAX, minEShits);
         lastResults = results;
         wirteResults(Paths.get("data").resolve(collection+"Results.txt"), results);
         shutdown();
     }
 
-    public static void checkHits(LinkedList<TFIDFMathElement> results, String regex, int maxEntries){
+    public void runAll() throws IOException {
+        minEShits = config.getMinDocumentFrequency();
+        showNumberOfResults = 300;
+        LOG.info("Requesting all files from folder.");
+        List<MathDocument> mdocs = requestAllDocs(Paths.get(config.getDatabaseParentFolder()));
+        long numberOfDocs = mdocs.size();
+        LOG.info("Done. Total size of documents: " + numberOfDocs);
+        LOG.info("Start requesting math from BaseX for all documents.");
+        mdocs = requestMath(mdocs);
+        LOG.info("Done requesting all math. Start calculating TF-IDF values.");
+        HashMap<String, List<TFIDFMathElement>> tfidfMath = mapMathDocsToTFIDFElements(mdocs, numberOfDocs);
+        LOG.info("Done calculating TF-IDF values. Merging entries and find MAX.");
+        List<TFIDFMathElement> results = groupTFIDFElements(tfidfMath, MathMergeFunctions.MAX, minEShits);
+        LOG.info("Done. Writing results to data/ZBMathTotalResults.txt");
+        lastResults = results;
+        wirteResults(Paths.get("data").resolve("ZBMathTotalResults.txt"), results);
+        shutdown();
+    }
+
+    public static void checkHits(List<TFIDFMathElement> results, String regex, int maxEntries){
         LinkedList<TestHit> hits = new LinkedList<>();
 
         int idx = 1;
@@ -282,7 +306,7 @@ public class CLISearcher extends SearcherService {
         }
     }
 
-    public void wirteResults(Path outputFile, LinkedList<TFIDFMathElement> results) throws IOException {
+    public void wirteResults(Path outputFile, List<TFIDFMathElement> results) throws IOException {
         Files.deleteIfExists(outputFile);
 
         try (BufferedWriter bw = Files.newBufferedWriter(outputFile, StandardOpenOption.CREATE_NEW)){
