@@ -2,6 +2,7 @@
 # Heavy csv collections and results
 **/collections/*.csv
 **/tfidf-results/
+**/data/
 
 # basex configurations
 .basex
