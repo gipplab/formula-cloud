@@ -160,7 +160,7 @@ public class SearcherService {
 
     public List<MathDocument> requestMath(List<MathDocument> documents){
         LOG.info("Collecting math for each document from BaseX.");
-        documents.stream().parallel().forEach(MathDocument::requestMathFromBasex);
+        documents.stream().parallel().forEach(e -> e.requestMathFromBasex(config));
         return documents;
     }
 
@@ -188,7 +188,8 @@ public class SearcherService {
                             totalDocs,
                             config.getMinDocumentFrequency(),
                             config.getMaxDocumentFrequency(),
-                            options
+                            options,
+                            config
                     );
             Helper.collect(docElements, map);
         }

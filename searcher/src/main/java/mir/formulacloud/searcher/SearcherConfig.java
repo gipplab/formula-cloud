@@ -37,6 +37,9 @@ public class SearcherConfig {
     @Parameter(names = {"-maxDF", "--maxDocumentFrequency"}, description = "Set the max document frequency (default is 1).")
     private int maxDocumentFrequency = Integer.MAX_VALUE;
 
+    @Parameter(names = {"-minDepth", "--minimumDepth"}, description = "Only consider math with a minimum depth..")
+    private int minDepth = 1;
+
     @Parameter(names = {"-h", "--help"}, help = true)
     private boolean help = false;
 
@@ -68,6 +71,14 @@ public class SearcherConfig {
 
     public int getMinDocumentFrequency() {
         return minDocumentFrequency;
+    }
+
+    public int getMinDepth() {
+        return minDepth;
+    }
+
+    public void setMinDepth(int minDepth) {
+        this.minDepth = minDepth;
     }
 
     public String getFixedIndex() {

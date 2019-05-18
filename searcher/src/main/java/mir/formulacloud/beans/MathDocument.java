@@ -72,7 +72,7 @@ public class MathDocument {
         return esSearchPrecision;
     }
 
-    public void requestMathFromBasex(){
+    public void requestMathFromBasex(SearcherConfig config){
         this.mathElements = new HashMap<>();
 
         if (basexDB == null || basexDB.isEmpty()){
@@ -96,6 +96,7 @@ public class MathDocument {
             // don't use client anymore!
             client = null;
 
+            int minD = config.getMinDepth();
             Matcher matcher = Constants.BASEX_ELEMENT_PATTERN.matcher(results);
             while(matcher.find()){
                 MathElement element = new MathElement(
@@ -104,7 +105,9 @@ public class MathDocument {
                         Integer.parseInt(matcher.group(1)),
                         1
                 );
-                this.mathElements.put(element.expression, element);
+
+                if ( element.getDepth() >= minD )
+                    this.mathElements.put(element.expression, element);
             }
 
             LOG.info("Finished requests for document " + docID + " [math elements: " + mathElements.size() + "]");
@@ -117,14 +120,14 @@ public class MathDocument {
         }
     }
 
-    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(long totalDocs, long minDocFrq, long maxDocFrq){
-        return getDocumentTFIDF(totalDocs, minDocFrq, maxDocFrq, TFIDFOptions.getDefaultTFIDFOption());
+    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(long totalDocs, long minDocFrq, long maxDocFrq, SearcherConfig config){
+        return getDocumentTFIDF(totalDocs, minDocFrq, maxDocFrq, TFIDFOptions.getDefaultTFIDFOption(), config);
     }
 
-    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(long totalDocs, long minDocFrq, long maxDocFrq, TFIDFOptions options){
+    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(long totalDocs, long minDocFrq, long maxDocFrq, TFIDFOptions options, SearcherConfig config){
         if (mathElements == null){
             LOG.warn("Requested document TF-IDF values but did not request math from BaseX yet. Invoke requestMathFromBasex() first.");
-            requestMathFromBasex();
+            requestMathFromBasex(config);
         }
 
         if (mathElements.isEmpty()){
