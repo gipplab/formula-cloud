@@ -313,7 +313,8 @@ public class CLISearcher extends SearcherService {
         try (BufferedWriter bw = Files.newBufferedWriter(outputFile, StandardOpenOption.CREATE_NEW)){
             results.forEach( e -> {
                 try {
-                    bw.write(""+e.getScore() + "," + SimpleMMLConverter.stringToMML(e.getExpression()));
+                    String out = e.getScore() + ";" + e.toString() + ";<math>" + SimpleMMLConverter.stringToMML(e.getExpression()) + "</math>";
+                    bw.write(out);
                     bw.newLine();
                 } catch (IOException ioe){
                     ioe.printStackTrace();

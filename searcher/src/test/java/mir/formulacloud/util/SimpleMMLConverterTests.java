@@ -1,6 +1,10 @@
 package mir.formulacloud.util;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 import org.junit.jupiter.api.Test;
+
+import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,6 +45,13 @@ public class SimpleMMLConverterTests {
         String mml = "<mrow><mrow><mi>W</mi><mo>=</mo><mrow><mrow><mo>⟨</mo><mpadded><mi>S</mi></mpadded><mo>|</mo></mrow><mo>\u2062</mo><msup><mrow><mo>(</mo><mrow><mi>s</mi><mo>\u2062</mo><mi>t</mi></mrow><mo>)</mo></mrow><mrow><mi>m</mi><mo>\u2062</mo><mrow><mo>(</mo><mi>s</mi><mo>,</mo><mi>t</mi><mo>)</mo></mrow></mrow></msup></mrow></mrow><mo>:</mo><mrow><mrow><mi>s</mi><mo>,</mo><mi>t</mi></mrow><mo>∈</mo><mrow><mpadded><mi>S</mi></mpadded><mo>\u2062</mo><mpadded><mtext>and</mtext></mpadded><mo>\u2062</mo><mi>m</mi><mo>\u2062</mo><mrow><mo>(</mo><mi>s</mi><mo>,</mo><mi>t</mi><mo>)</mo></mrow><mo>\u2062</mo><mrow><mo>&lt;</mo><mi>∞</mi><mo>⟩</mo></mrow></mrow></mrow></mrow>";
         String mmlConverted = SimpleMMLConverter.stringToMML(str);
         assertEquals(mml, mmlConverted);
+    }
+
+    @Test
+    public void fileTest() throws Exception {
+        URL url = Resources.getResource("otherTest.mml.txt");
+        String str = Resources.toString(url, Charsets.UTF_8);
+        System.out.println(SimpleMMLConverter.stringToMML(str));
     }
 
 }
