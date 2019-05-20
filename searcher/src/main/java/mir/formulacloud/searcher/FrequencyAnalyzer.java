@@ -91,12 +91,13 @@ public class FrequencyAnalyzer {
             fa.generalStats();
             return;
         }
+
         Path out = Paths.get(args[1]);
         FrequencyAnalyzer fa = new FrequencyAnalyzer(in);
         fa.orderedTotalFrequency(out.resolve("rawFrequencies.txt"));
-        for ( int i = 1; i <= 10; i++){
-            String name = "allMMLDepth" + i + ".txt";
-            fa.orderedFrequencyPerDepth(out.resolve(name), i, true);
-        }
+//        for ( int i = 1; i <= 10; i++){
+//            String name = "allMMLDepth" + i + ".txt";
+//            fa.orderedFrequencyPerDepth(out.resolve(name), i, true);
+//        }
     }
 }

@@ -261,13 +261,13 @@ public class SearcherService {
         CLISearcher cliSearcher = new CLISearcher(config);
         cliSearcher.init();
 
-        try {
-//            cliSearcher.runZBMath("EigenvalueIDs");
-            cliSearcher.runAll();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+////            cliSearcher.runZBMath("EigenvalueIDs");
+//            cliSearcher.runAll();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
-//        cliSearcher.start();
+        cliSearcher.start();
     }
 }
