@@ -41,7 +41,7 @@ public class FrequencyAnalyzer {
                     .sorted(Comparator.comparingLong(MathElement::getTotalFrequency).reversed())
                     .forEach( e -> {
                         try {
-                            bw.write(""+e.getTotalFrequency());
+                            bw.write(""+e.getTotalFrequency()+";"+e.getDepth());
                             bw.newLine();
                         } catch (IOException ioe){
                             ioe.printStackTrace();

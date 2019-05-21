@@ -28,9 +28,9 @@
     </Appenders>
     <Loggers>
         <Root level="DEBUG">
-            <!--<AppenderRef ref="system-console" level="INFO"/>-->
-            <AppenderRef ref="infoFileLogger" level="DEBUG"/>
-            <AppenderRef ref="errorFileLogger" level="WARN"/>
+            <AppenderRef ref="system-console" level="INFO"/>
+            <!--<AppenderRef ref="infoFileLogger" level="DEBUG"/>-->
+            <!--<AppenderRef ref="errorFileLogger" level="WARN"/>-->
         </Root>
     </Loggers>
 </Configuration>

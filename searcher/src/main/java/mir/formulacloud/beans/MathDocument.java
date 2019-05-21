@@ -79,7 +79,7 @@ public class MathDocument {
             // this document dont have math... only text
             LOG.debug("Cannot receive math for document " + docID + " because it doesn't have math.");
             counter++;
-            System.out.print("\r"+counter);
+//            System.out.print("\r"+counter);
             return;
         }
 
@@ -112,11 +112,11 @@ public class MathDocument {
 
             LOG.info("Finished requests for document " + docID + " [math elements: " + mathElements.size() + "]");
             counter++;
-            System.out.print("\r"+counter);
+//            System.out.print("\r"+counter);
         } catch (IOException e) {
             LOG.error("Not able to receive math from BaseX for Document " + docID, e);
             counter++;
-            System.out.print("\r"+counter);
+//            System.out.print("\r"+counter);
         }
     }
 
