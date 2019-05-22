@@ -94,9 +94,15 @@ public class BaseXController {
             }
         }
         synchronized (list){
-            BaseXClient bc = list.remove(0);
-            if (bc != null) return bc;
-            else return doNotCreateNewClients(list); // wtf this shouldn't be possible but flink can do everything... O.o
+            try {
+                BaseXClient bc = list.remove(0);
+                if (bc != null) return bc;
+                else
+                    return doNotCreateNewClients(list); // wtf this shouldn't be possible but flink can do everything... O.o
+            } catch (IndexOutOfBoundsException iooe){
+                // might be a never ending story but fuck it... this shouldn't be possible anyway
+                return doNotCreateNewClients(list);
+            }
         }
     }
 
