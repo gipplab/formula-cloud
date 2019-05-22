@@ -160,11 +160,16 @@ public class SearcherService {
 
     public List<MathDocument> requestMath(List<MathDocument> documents){
         LOG.info("Collecting math for each document from BaseX.");
-        documents
-                .stream()
-                .filter(Objects::nonNull)
-                .parallel()
-                .forEach(e -> e.requestMathFromBasex(config));
+        for (MathDocument doc : documents){
+            if (doc == null) continue;
+            LOG.info("Requesting math for " + doc.getDocID());
+            doc.requestMathFromBasex(config);
+        }
+//        documents
+//                .stream()
+//                .filter(Objects::nonNull)
+//                .parallel()
+//                .forEach(e -> e.requestMathFromBasex(config));
         return documents;
     }
 
