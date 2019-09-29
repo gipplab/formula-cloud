@@ -63,6 +63,9 @@ public class ArxivTests {
         SearchHits hits = service.getSearchResults(searchQuery, index);
         mathDocs = service.getMathResults(hits);
         mathDocs = service.requestMath(mathDocs);
+
+        double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
+        System.out.println("Finish setup - Memory usage now: " + mem + " MB");
     }
 
     @ParameterizedTest

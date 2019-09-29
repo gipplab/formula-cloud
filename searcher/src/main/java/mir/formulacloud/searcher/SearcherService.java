@@ -270,6 +270,9 @@ public class SearcherService {
         CLISearcher cliSearcher = new CLISearcher(config);
         cliSearcher.init();
 
+        double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
+        System.out.println("Finish initialization - Memory usage now: " + mem + " MB");
+
 //        try {
 ////            cliSearcher.runZBMath("EigenvalueIDs");
 //            cliSearcher.runAll();
