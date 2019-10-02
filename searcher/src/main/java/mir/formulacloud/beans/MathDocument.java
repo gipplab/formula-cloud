@@ -11,7 +11,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 
 /**
@@ -32,9 +34,24 @@ public class MathDocument {
 
     private String xQuery;
 
+    private int documentLength = 0;
+
     private HashMap<String, MathElement> mathElements;
 
+    private ArrayList<Integer> maxCountPerDepthTable;
+
     private double esSearchPrecision;
+
+    private static final int ARXIV_DOCS = 841_008;
+    private static final int ZBMATH_DOCS = 1_349_297;
+
+    private static final int ARXIV_MATH = 294_151_288;
+    private static final int ZBMATH_MATH = 11_747_860;
+
+    public static final double ARXIV_AVGDL = ARXIV_MATH / (double) ARXIV_DOCS;
+    public static final double ZBMATH_AVGDL = ZBMATH_MATH / (double) ZBMATH_DOCS;
+
+    public static double AVGDL = ARXIV_AVGDL;
 
     public MathDocument(String docID, String basexDB, double elasticsearchPrecision){
         this.docID = docID;
@@ -42,6 +59,7 @@ public class MathDocument {
         this.esSearchPrecision = elasticsearchPrecision;
         this.mathElements = new HashMap<>();
         this.xQuery = "XQUERY " + XQueryLoader.getScript(docID);
+        this.maxCountPerDepthTable = new ArrayList<>();
     }
 
     public MathDocument(String collection, String basexDB){
@@ -50,6 +68,7 @@ public class MathDocument {
         this.esSearchPrecision = 0;
         this.mathElements = new HashMap<>();
         this.xQuery = "XQUERY " + XQueryLoader.getZBScript(collection);
+        this.maxCountPerDepthTable = new ArrayList<>();
     }
 
     public String getDocID() {
@@ -106,8 +125,25 @@ public class MathDocument {
                         1
                 );
 
-                if ( element.getDepth() >= minD )
+                this.documentLength += element.getTotalFrequency();
+
+                if ( element.getDepth() >= minD ){
+                    int d = element.getDepth();
+                    while ( maxCountPerDepthTable.size() < d ){
+                        maxCountPerDepthTable.add(0);
+                    }
+
+//                    maxCountPerDepthTable.set(
+//                            d-1,
+//                            maxCountPerDepthTable.get(d-1) + element.getTotalFrequency()
+//                    );
+
+                    if ( maxCountPerDepthTable.get(d-1) < element.getTotalFrequency() ){
+                        maxCountPerDepthTable.set(d-1, element.getTotalFrequency());
+                    }
+
                     this.mathElements.put(element.expression, element);
+                }
             }
 
             LOG.info("Finished requests for document " + docID + " [math elements: " + mathElements.size() + "]");
@@ -140,9 +176,14 @@ public class MathDocument {
         InverseDocumentFrequencies idfSetting = options.getIdfOption();
 
         // the total number of math elements in this document or max number of math of one type
-        long total = tfSetting.equals(TermFrequencies.NORM) ?
+        int total = tfSetting.equals(TermFrequencies.NORM) ?
                 getMaxFrequency(mathElements).getTotalFrequency() :
                 getSumOfFrequencies(mathElements);
+
+        boolean bm25 = false;
+        if ( tfSetting.equals(TermFrequencies.BM25) ){
+            bm25 = true;
+        }
 
         HashMap<String, TFIDFMathElement> tfidfElements = new HashMap<>();
         for ( MathElement docMathElement : mathElements.values() ){
@@ -160,8 +201,28 @@ public class MathDocument {
             // calculate TF-IDF
             // TF: raw(term,doc) and total=NumOfElements in Doc
             // DF: in how many docs it appear and total number of docs
+//            int totalPerDepth = total;
+//            try {
+//                totalPerDepth = maxCountPerDepthTable.get(docMathElement.getDepth()-1);
+//            } catch (Exception e){}
+
             double tf = tfSetting.calculate(docMathElement.getTotalFrequency(), total);
+
+//            if ( bm25 ) {
+//                total = documentLength;
+//            }
+
+
+            if (bm25){
+                double k = options.getK1();
+                double b = options.getB();
+
+                total = maxCountPerDepthTable.get(docMathElement.getDepth()-1);
+                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*(documentLength/AVGDL)));
+            }
+
             double idf = idfSetting.calculate(tfidfReference.getDocFrequency(), totalDocs);
+
 
             TFIDFMathElement e = new TFIDFMathElement(
                     docMathElement, tf*idf
@@ -182,8 +243,8 @@ public class MathDocument {
         return max;
     }
 
-    public static long getSumOfFrequencies(HashMap<String, MathElement> elements){
-        long sum = 0;
+    public static int getSumOfFrequencies(HashMap<String, MathElement> elements){
+        int sum = 0;
         for ( MathElement e : elements.values() )
             sum += e.getTotalFrequency();
         return sum;

@@ -225,7 +225,7 @@ public class SearcherService {
                     if (l.size() < minHitFrequency) return null;
 
                     double[] scores = new double[l.size()];
-                    long localfreq = 0;
+                    int localfreq = 0;
                     for (int i = 0; i < scores.length; i++) {
                         scores[i] = l.get(i).getScore();
                         localfreq += l.get(i).getTotalFrequency();
@@ -269,6 +269,12 @@ public class SearcherService {
         SearcherConfig config = SearcherConfig.loadConfig(args);
         CLISearcher cliSearcher = new CLISearcher(config);
         cliSearcher.init();
+
+        if ( config.getFixedIndex().equals("zbmath") ){
+            MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+        } else {
+            MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
+        }
 
         double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
         System.out.println("Finish initialization - Memory usage now: " + mem + " MB");

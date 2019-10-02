@@ -4,8 +4,8 @@ package mir.formulacloud.beans;
  * @author Andre Greiner-Petter
  */
 public class MathElement {
-    private long totalFrequency;
-    private long docFrequency;
+    private int totalFrequency;
+    private int docFrequency;
 
     public String expression;
     private int depth;
@@ -17,18 +17,18 @@ public class MathElement {
         this.docFrequency = 0;
     }
 
-    public MathElement(String expression, int depth, long totalFrequency, long docFrequency){
+    public MathElement(String expression, int depth, int totalFrequency, int docFrequency){
         this.expression = expression;
         this.depth = depth;
         this.totalFrequency = totalFrequency;
         this.docFrequency = docFrequency;
     }
 
-    public long getTotalFrequency() {
+    public int getTotalFrequency() {
         return totalFrequency;
     }
 
-    public long getDocFrequency() {
+    public int getDocFrequency() {
         return docFrequency;
     }
 
@@ -48,11 +48,11 @@ public class MathElement {
         this.depth = depth;
     }
 
-    public void setTotalFrequency(long totalFrequency) {
+    public void setTotalFrequency(int totalFrequency) {
         this.totalFrequency = totalFrequency;
     }
 
-    public void setDocFrequency(long docFrequency) {
+    public void setDocFrequency(int docFrequency) {
         this.docFrequency = docFrequency;
     }
 

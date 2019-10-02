@@ -238,6 +238,11 @@ public class CLISearcher extends SearcherService {
         if (match.group(CMD_INDEX) != null){
             currentIndex = match.group(CMD_INDEX);
             System.out.println("Set index to " + currentIndex);
+            if ( currentIndex.equals("zbmath") ){
+                MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+            } else {
+                MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
+            }
         } else if (match.group(CMD_ESHITS) != null){
             int n = Integer.parseInt(match.group(CMD_ESHITS));
             config.setElasticsearchMaxHits(n);
