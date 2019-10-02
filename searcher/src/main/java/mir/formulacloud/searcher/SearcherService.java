@@ -90,8 +90,8 @@ public class SearcherService {
         elasticsearch.stop();
     }
 
-    public long getNumberOfDocuments(String index){
-        return elasticsearch.numberOfDocuments(index);
+    public int getNumberOfDocuments(String index){
+        return (int)elasticsearch.numberOfDocuments(index);
     }
 
     public SearchHits getSearchResults(String searchQuery, @NotNull String... indices){
@@ -180,14 +180,14 @@ public class SearcherService {
      */
     public HashMap<String, List<TFIDFMathElement>> mapMathDocsToTFIDFElements(
             List<MathDocument> docs,
-            long totalDocs
+            int totalDocs
     ){
         return mapMathDocsToTFIDFElements(docs, totalDocs, TFIDFOptions.getDefaultTFIDFOption());
     }
 
     public HashMap<String, List<TFIDFMathElement>> mapMathDocsToTFIDFElements(
             List<MathDocument> docs,
-            long totalDocs,
+            int totalDocs,
             TFIDFOptions options
     ){
         HashMap<String, List<TFIDFMathElement>> map = new HashMap<>();

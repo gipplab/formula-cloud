@@ -123,7 +123,7 @@ public class CLISearcher extends SearcherService {
     }
 
     private void run(String searchQuery, String expected){
-        long numberOfDocs = getNumberOfDocuments(currentIndex);
+        int numberOfDocs = getNumberOfDocuments(currentIndex);
         SearchHits hits = getSearchResults(searchQuery, currentIndex);
         List<MathDocument> mdocs = getMathResults(hits);
         mdocs = requestMath(mdocs);
@@ -143,7 +143,7 @@ public class CLISearcher extends SearcherService {
     public void runZBMath(String collection) throws IOException {
         minEShits = 1;
         showNumberOfResults = 50;
-        long numberOfDocs = getNumberOfDocuments("zbmath");
+        int numberOfDocs = getNumberOfDocuments("zbmath");
         Path p = Paths.get("data").resolve(collection);
         List<String> ids = Files.lines(p).collect(Collectors.toList());
         List<MathDocument> mdocs = getMathResults(ids);
@@ -160,7 +160,7 @@ public class CLISearcher extends SearcherService {
         showNumberOfResults = 300;
         LOG.info("Requesting all files from folder.");
         List<MathDocument> mdocs = requestAllDocs(Paths.get(config.getDatabaseParentFolder()));
-        long numberOfDocs = mdocs.size();
+        int numberOfDocs = mdocs.size();
         LOG.info("Done. Total size of documents: " + numberOfDocs);
         LOG.info("Start requesting math from BaseX for all documents.");
         System.out.println("Total Docs: " + numberOfDocs);

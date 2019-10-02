@@ -139,7 +139,7 @@ public class MathDocument {
 //                    );
 
                     if ( maxCountPerDepthTable.get(d-1) < element.getTotalFrequency() ){
-                        maxCountPerDepthTable.set(d-1, element.getTotalFrequency());
+                        maxCountPerDepthTable.set(d-1, (int)element.getTotalFrequency());
                     }
 
                     this.mathElements.put(element.expression, element);
@@ -156,11 +156,11 @@ public class MathDocument {
         }
     }
 
-    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(long totalDocs, long minDocFrq, long maxDocFrq, SearcherConfig config){
+    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(int totalDocs, int minDocFrq, int maxDocFrq, SearcherConfig config){
         return getDocumentTFIDF(totalDocs, minDocFrq, maxDocFrq, TFIDFOptions.getDefaultTFIDFOption(), config);
     }
 
-    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(long totalDocs, long minDocFrq, long maxDocFrq, TFIDFOptions options, SearcherConfig config){
+    public HashMap<String, TFIDFMathElement> getDocumentTFIDF(int totalDocs, int minDocFrq, int maxDocFrq, TFIDFOptions options, SearcherConfig config){
         if (mathElements == null){
             LOG.warn("Requested document TF-IDF values but did not request math from BaseX yet. Invoke requestMathFromBasex() first.");
             requestMathFromBasex(config);
@@ -177,7 +177,7 @@ public class MathDocument {
 
         // the total number of math elements in this document or max number of math of one type
         int total = tfSetting.equals(TermFrequencies.NORM) ?
-                getMaxFrequency(mathElements).getTotalFrequency() :
+                (int)getMaxFrequency(mathElements).getTotalFrequency() :
                 getSumOfFrequencies(mathElements);
 
         boolean bm25 = false;

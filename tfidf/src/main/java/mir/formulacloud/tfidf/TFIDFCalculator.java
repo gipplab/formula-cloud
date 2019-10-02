@@ -4,8 +4,11 @@ import com.beust.jcommander.JCommander;
 import mir.formulacloud.beans.MathElement;
 import mir.formulacloud.util.TFIDFConfig;
 import mir.formulacloud.util.XQueryLoader;
+import org.apache.flink.api.common.operators.base.ReduceOperatorBase;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.aggregation.Aggregations;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.core.fs.FileSystem;
@@ -55,26 +58,35 @@ public class TFIDFCalculator {
 
         DataSet<String> source = environment.fromCollection(set);
 
-        DataSet<MathElement> mathElements = source
+        // Tuple4: ExpressionString, Depth, Term Frequency, Document Frequency
+        DataSet<Tuple4<String, Short, Integer, Integer>> mathElements = source
                 .flatMap(new BaseXRequestMapper())
-                .setParallelism(config.getParallelism());
+                .groupBy(0) // group on strings
+                .sum(2)     // sum up TF
+                .andSum(3); // sum up DF
 
-        DataSet<MathElement> mergedElements = mathElements
-                .groupBy("expression")
-                .reduce(new MathElementMerger())
-                .setParallelism(config.getParallelism()*4);
+//        DataSet<MathElement> grouped = mathElements
+//                .groupBy("expression")
+//                .sum(0)
+//                .andSum(1);
+//                .groupBy("expression")
+//                .reduce(new MathElementMerger())
+//                .setCombineHint(ReduceOperatorBase.CombineHint.HASH)
+//                .setParallelism(config.getParallelism()*4);
 
         if ( !config.getOutputF().isEmpty() ){
-            mergedElements
-                    .writeAsText(
+            mathElements
+                    .writeAsCsv(
                             config.getOutputF(),
+                            "\n",
+                            ";",
                             FileSystem.WriteMode.OVERWRITE
                     )
                     .setParallelism(config.getNumOfOutputFiles());
         }
         else {
             LOG.info("Done! Trigger Flink execution. Write the output directly to console.");
-            mergedElements.print();
+            mathElements.print();
         }
     }
 

@@ -5,6 +5,7 @@ import mir.formulacloud.beans.MathElement;
 import mir.formulacloud.util.Constants;
 import mir.formulacloud.util.XQueryLoader;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.util.Collector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,13 +17,13 @@ import java.util.regex.Pattern;
 /**
  * @author Andre Greiner-Petter
  */
-public class BaseXRequestMapper implements FlatMapFunction<String, MathElement> {
+public class BaseXRequestMapper implements FlatMapFunction<String, Tuple4<String, Short, Integer, Integer>> {
     private static final Logger LOG = LogManager.getLogger(BaseXRequestMapper.class.getName());
 
     public BaseXRequestMapper() {}
 
     @Override
-    public void flatMap(String docID, Collector<MathElement> collector) {
+    public void flatMap(String docID, Collector<Tuple4<String, Short, Integer, Integer>> collector) {
         String query = XQueryLoader.getScript(docID);
 
         String db = BaseXController.getDBFromDocID(docID);
@@ -58,12 +59,20 @@ public class BaseXRequestMapper implements FlatMapFunction<String, MathElement> 
             Matcher matcher = Constants.BASEX_ELEMENT_PATTERN.matcher(results);
             while (matcher.find()) {
                 // found new line of math element
-                MathElement element = new MathElement(
+                Tuple4<String, Short, Integer, Integer> element = new Tuple4<>(
                         matcher.group(3),
-                        Integer.parseInt(matcher.group(2)),
-                        Integer.parseInt(matcher.group(1)),
-                        1
+                        Short.parseShort(matcher.group(2)), // depth
+                        Integer.parseInt(matcher.group(1)), // TF
+                        1 // DF
                 );
+
+//                MathElement element = new MathElement(
+//                        matcher.group(3),
+//                        Integer.parseInt(matcher.group(2)),
+//                        Integer.parseInt(matcher.group(1)),
+//                        1
+//                );
+
                 collector.collect(element);
                 counter++;
             }
