@@ -64,3 +64,9 @@ STRIPNS = true
 INTPARSE = true
 ATTRINCLUDE = data-set,data-doc-id,data-major-collection,data-minor-collection,data-finer-collection,url
 ```
+
+### Useful comments
+Counting all lines in all files (make sure parallel is installed):
+```bash
+find . -name "*" | parallel 'wc -l {}' 2>/dev/null | awk '{print $1}' | paste -sd+ - | bc
+```
