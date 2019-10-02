@@ -265,27 +265,32 @@ public class SearcherService {
                 .collect(Collectors.toList());
     }
 
-    public static void main(String[] args) {
-        SearcherConfig config = SearcherConfig.loadConfig(args);
-        CLISearcher cliSearcher = new CLISearcher(config);
-        cliSearcher.init();
+    public static void main(String[] args) throws IOException {
+        FastTest t = new FastTest();
+        t.init();
+        t.theTest();
+        t.end();
 
-        if ( config.getFixedIndex().equals("zbmath") ){
-            MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
-        } else {
-            MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
-        }
-
-        double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
-        System.out.println("Finish initialization - Memory usage now: " + mem + " MB");
-
-//        try {
-////            cliSearcher.runZBMath("EigenvalueIDs");
-//            cliSearcher.runAll();
-//        } catch (IOException e) {
-//            e.printStackTrace();
+//        SearcherConfig config = SearcherConfig.loadConfig(args);
+//        CLISearcher cliSearcher = new CLISearcher(config);
+//        cliSearcher.init();
+//
+//        if ( config.getFixedIndex().equals("zbmath") ){
+//            MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+//        } else {
+//            MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
 //        }
-
-        cliSearcher.start();
+//
+//        double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
+//        System.out.println("Finish initialization - Memory usage now: " + mem + " MB");
+//
+////        try {
+//////            cliSearcher.runZBMath("EigenvalueIDs");
+////            cliSearcher.runAll();
+////        } catch (IOException e) {
+////            e.printStackTrace();
+////        }
+//
+//        cliSearcher.start();
     }
 }

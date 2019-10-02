@@ -1,6 +1,7 @@
 package mir.formulacloud.util;
 
 import mir.formulacloud.beans.MathElement;
+import mir.formulacloud.searcher.FastTest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.basex.query.func.math.MathE;
@@ -93,6 +94,9 @@ public class TFIDFLoader {
     }
 
     public static void main(String[] args) throws IOException {
+
+
+
         TFIDFLoader loader = new TFIDFLoader();
         Files.walk(Paths.get("out"))
                 .parallel()

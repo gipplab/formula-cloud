@@ -7,6 +7,7 @@ import mir.formulacloud.util.Helper;
 import mir.formulacloud.util.SimpleMMLConverter;
 import mir.formulacloud.util.TFIDFConfig;
 import mir.formulacloud.util.XQueryLoader;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.Before;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,7 +42,6 @@ public class ZentralBlattTests {
 //    private static final String expr = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
     private static final String expr = ".*mrow(mo:(,msub(mi:λ,.*),mo:,,.*,mo:,,msub(mi:λ,.*),mo:)).*";
 
-
     @BeforeAll
     public static void init() throws IOException {
         // this min term freq is minHitFreq
@@ -51,6 +51,7 @@ public class ZentralBlattTests {
 
         config = new SearcherConfig();
         config.setTfidfData("/opt/zbmath/tfidf");
+        config.setDatabaseParentFolder("/opt/zbmath/empty-dump");
 //        config.setMinDocumentFrequency(3);
 
         // in minimum of 10 docs we want to get results
@@ -60,31 +61,46 @@ public class ZentralBlattTests {
         config.setMinDepth(3);
 
         service = new SearcherService(config);
+        service.init();
+
 
         TFIDFConfig tfidfconfig = new TFIDFConfig();
         tfidfconfig.setDataset("/opt/zbmath/empty-dump");
 
-        DatastructureAnalyzer da = new DatastructureAnalyzer(tfidfconfig);
-        da.init();
+//        DatastructureAnalyzer da = new DatastructureAnalyzer(tfidfconfig);
+//        da.init();
 
-//        service.initBaseXServers(DB);
-        service.initElasticSearch();
-
-
-        LinkedList<String> docNames = da.getEvenProcessingOrder();
+//        service.initBaseXServers();
+//        service.initElasticSearch();
 
         mathDocs = new LinkedList<>();
 
+        System.gc();
+
         System.out.println("Setup empty math docs");
-        for ( String fn : docNames ){
-            String dbName = BaseXController.getDBFromDocID(fn);
-            mathDocs.add(new MathDocument(fn, dbName, 1));
-        }
+        Files
+                .walk(Paths.get(tfidfconfig.getDataset()))
+                .sequential() // mandatory, otherwise the hashmaps may vary in sizes and entries
+                .filter( p -> Files.isRegularFile(p))
+                .forEach( p -> {
+                    String fileName = FilenameUtils.removeExtension(p.getFileName().toString());
+                    String folderName = p.getParent().getFileName().toString();
+                    mathDocs.add(new MathDocument(fileName, folderName, 1));
+                });
+
+//        LinkedList<String> docNames = da.getEvenProcessingOrder();
+
+
+//        for ( String fn : docNames ){
+//            String dbName = BaseXController.getDBFromDocID(fn);
+//            mathDocs.add(new MathDocument(fn, dbName, 1));
+//        }
 
 //        addMathDocsFromFile("riemannzetafiles.txt");
 //        addMathDoc(collection);
 
-        service.initTFIDFTables();
+//        System.out.println("Init tables");
+//        service.initTFIDFTables();
 
         System.out.println("Requesting math for all docs");
         mathDocs = service.requestMath(mathDocs);
