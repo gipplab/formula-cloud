@@ -4,10 +4,10 @@ package mir.formulacloud.beans;
  * @author Andre Greiner-Petter
  */
 public class MathElement {
+    public String expression;
+
     public int totalFrequency;
     public int docFrequency;
-
-    public String expression;
     public int depth;
 
     public MathElement(){

@@ -45,7 +45,9 @@ public class ZentralBlattTests {
     @BeforeAll
     public static void init() throws IOException {
         // this min term freq is minHitFreq
-        XQueryLoader.initMinTermFrequency(50);
+        XQueryLoader.initMinTermFrequency(1);
+
+        System.out.println("Init all");
 
         config = new SearcherConfig();
         config.setTfidfData("/opt/zbmath/tfidf");
@@ -53,8 +55,8 @@ public class ZentralBlattTests {
 
         // in minimum of 10 docs we want to get results
         minHit = 1;
-        config.setMinDocumentFrequency(100);
-        config.setMaxDocumentFrequency(50_000);
+        config.setMinDocumentFrequency(200);
+        config.setMaxDocumentFrequency(500_000);
         config.setMinDepth(3);
 
         service = new SearcherService(config);
@@ -62,126 +64,141 @@ public class ZentralBlattTests {
         TFIDFConfig tfidfconfig = new TFIDFConfig();
         tfidfconfig.setDataset("/opt/zbmath/empty-dump");
 
-//        DatastructureAnalyzer da = new DatastructureAnalyzer(tfidfconfig);
-//        da.init();
-        service.initBaseXServers(DB);
+        DatastructureAnalyzer da = new DatastructureAnalyzer(tfidfconfig);
+        da.init();
 
-        service.initTFIDFTables();
+//        service.initBaseXServers(DB);
+        service.initElasticSearch();
+
+
+        LinkedList<String> docNames = da.getEvenProcessingOrder();
 
         mathDocs = new LinkedList<>();
 
-//        addMathDocsFromFile("riemannzetafiles.txt");
-        addMathDoc(collection);
+        System.out.println("Setup empty math docs");
+        for ( String fn : docNames ){
+            String dbName = BaseXController.getDBFromDocID(fn);
+            mathDocs.add(new MathDocument(fn, dbName, 1));
+        }
 
+//        addMathDocsFromFile("riemannzetafiles.txt");
+//        addMathDoc(collection);
+
+        service.initTFIDFTables();
+
+        System.out.println("Requesting math for all docs");
         mathDocs = service.requestMath(mathDocs);
     }
 
     @Test
-    public void relIDFTest(){
+    public void theTest(){
         System.out.println("Test RELATIVE * IDF");
         TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.RELATIVE, InverseDocumentFrequencies.IDF
+                TermFrequencies.BM25, InverseDocumentFrequencies.BM25_IDF
         );
         compute(options);
     }
 
-    @Test
-    public void rawIDFTest(){
-        System.out.println("Test RAW * IDF");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.RAW, InverseDocumentFrequencies.IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void logIDFTest(){
-        System.out.println("Test LOG * IDF");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.LOG, InverseDocumentFrequencies.IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void normIDFTest(){
-        System.out.println("Test NORM * IDF");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.NORM, InverseDocumentFrequencies.IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void relPROPIDFTest(){
-        System.out.println("Test RELATIVE * PROP_IDF");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.RELATIVE, InverseDocumentFrequencies.PROP_IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void rawPROPIDFTest(){
-        System.out.println("Test RAW * PROP_IDF");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.RAW, InverseDocumentFrequencies.PROP_IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void logPROPIDFTest(){
-        System.out.println("Test LOG * PROP_IDF");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.LOG, InverseDocumentFrequencies.PROP_IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void normPROPIDFTest(){
-        System.out.println("Test NORM * PROP_IDF");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.NORM, InverseDocumentFrequencies.PROP_IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void bm25RawTest(){
-        System.out.println("Test RAW w BM25");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.RAW, InverseDocumentFrequencies.BM25_IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void bm25RelTest(){
-        System.out.println("Test REL w BM25");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.RELATIVE, InverseDocumentFrequencies.BM25_IDF
-        );
-        compute(options);
-    }
-
-    @Test
-    public void bm25NormTest(){
-        System.out.println("Test NORM w BM25");
-        TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.NORM, InverseDocumentFrequencies.BM25_IDF
-        );
-        compute(options);
-    }
+//    @Test
+//    public void rawIDFTest(){
+//        System.out.println("Test RAW * IDF");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.RAW, InverseDocumentFrequencies.IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void logIDFTest(){
+//        System.out.println("Test LOG * IDF");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.LOG, InverseDocumentFrequencies.IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void normIDFTest(){
+//        System.out.println("Test NORM * IDF");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.NORM, InverseDocumentFrequencies.IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void relPROPIDFTest(){
+//        System.out.println("Test RELATIVE * PROP_IDF");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.RELATIVE, InverseDocumentFrequencies.PROP_IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void rawPROPIDFTest(){
+//        System.out.println("Test RAW * PROP_IDF");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.RAW, InverseDocumentFrequencies.PROP_IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void logPROPIDFTest(){
+//        System.out.println("Test LOG * PROP_IDF");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.LOG, InverseDocumentFrequencies.PROP_IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void normPROPIDFTest(){
+//        System.out.println("Test NORM * PROP_IDF");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.NORM, InverseDocumentFrequencies.PROP_IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void bm25RawTest(){
+//        System.out.println("Test RAW w BM25");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.RAW, InverseDocumentFrequencies.BM25_IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void bm25RelTest(){
+//        System.out.println("Test REL w BM25");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.RELATIVE, InverseDocumentFrequencies.BM25_IDF
+//        );
+//        compute(options);
+//    }
+//
+//    @Test
+//    public void bm25NormTest(){
+//        System.out.println("Test NORM w BM25");
+//        TFIDFOptions options = new TFIDFOptions(
+//                TermFrequencies.NORM, InverseDocumentFrequencies.BM25_IDF
+//        );
+//        compute(options);
+//    }
 
     private static void compute(TFIDFOptions options){
-        HashMap<String, List<TFIDFMathElement>> elements =
-                service.mapMathDocsToTFIDFElements(mathDocs, DOCS, options);
+        System.out.println("Calculating TF-IDF for each document and each math");
+        HashMap<String, List<TFIDFMathElement>> elements = service.mapMathDocsToTFIDFElements(mathDocs, DOCS, options);
 
+        System.out.println("Merging all math with TF-IDF");
         List<TFIDFMathElement> results = service.groupTFIDFElements(elements, MathMergeFunctions.MAX, minHit);
 
-        ArxivTests.testResults(results, expr);
+//        ArxivTests.testResults(results, expr);
+
+        System.out.println("DONE! Printing all results");
 
         System.out.println();
         printPretty(results);
@@ -189,9 +206,10 @@ public class ZentralBlattTests {
 
     private static void printPretty(List<TFIDFMathElement> results){
         System.out.println("Pretty Printed Top Results:");
-        for (int i = 0; i < 50 && i < results.size(); i++){
+        for (int i = 0; i < 300 && i < results.size(); i++){
             TFIDFMathElement e = results.get(i);
-            System.out.println(e.getScore() + ", <math>" + SimpleMMLConverter.stringToMML(e.getExpression()) + "</math>");
+            System.out.println(e);
+//            System.out.println(e.getScore() + ", <math>" + SimpleMMLConverter.stringToMML(e.getExpression()) + "</math>");
         }
     }
 

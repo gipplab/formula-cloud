@@ -8,6 +8,7 @@ import org.apache.flink.api.common.operators.base.ReduceOperatorBase;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.aggregation.Aggregations;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
@@ -65,12 +66,12 @@ public class TFIDFCalculator {
                 .sum(2)     // sum up TF
                 .andSum(3); // sum up DF
 
-//        DataSet<MathElement> grouped = mathElements
-//                .groupBy("expression")
-//                .sum(0)
-//                .andSum(1);
+//        DataSet<MathElement> mathElements = source
+//                .flatMap(new BaseXRequestMapper())
 //                .groupBy("expression")
 //                .reduce(new MathElementMerger())
+//                .setParallelism(config.getParallelism()*4);
+
 //                .setCombineHint(ReduceOperatorBase.CombineHint.HASH)
 //                .setParallelism(config.getParallelism()*4);
 
