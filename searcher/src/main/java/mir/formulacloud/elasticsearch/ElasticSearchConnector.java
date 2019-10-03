@@ -1,5 +1,6 @@
 package mir.formulacloud.elasticsearch;
 
+import mir.formulacloud.beans.MathDocument;
 import mir.formulacloud.searcher.SearcherConfig;
 import org.apache.http.HttpHost;
 import org.apache.logging.log4j.LogManager;
@@ -116,6 +117,29 @@ public class ElasticSearchConnector {
         SearchRequest request = createEnhancedSearchRequest(searchQuery, indices);
         try {
             SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+            return response.getHits();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
+
+    public SearchHits retrieveAllDocuments(String index){
+        ExistsQueryBuilder existQB = QueryBuilders.existsQuery("database");
+        BoolQueryBuilder bqb = QueryBuilders.boolQuery();
+        bqb.must(existQB);
+
+        SearchSourceBuilder sb = new SearchSourceBuilder();
+        sb.query(bqb);
+        sb.size(MathDocument.ZBMATH_DOCS);
+        sb.fetchSource(INCLUDE_FIELDS, EXCLUDE_FIELDS);
+
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices(index);
+        searchRequest.source(sb);
+
+        try {
+            SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
             return response.getHits();
         } catch (IOException ioe) {
             ioe.printStackTrace();

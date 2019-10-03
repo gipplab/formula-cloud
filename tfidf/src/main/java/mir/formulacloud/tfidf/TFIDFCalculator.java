@@ -62,9 +62,11 @@ public class TFIDFCalculator {
         // Tuple4: ExpressionString, Depth, Term Frequency, Document Frequency
         DataSet<Tuple4<String, Short, Integer, Integer>> mathElements = source
                 .flatMap(new BaseXRequestMapper())
+                .setParallelism(config.getParallelism())
                 .groupBy(0) // group on strings
                 .sum(2)     // sum up TF
-                .andSum(3); // sum up DF
+                .andSum(3) // sum up DF
+                .setParallelism(config.getParallelism()*4);
 
 //        DataSet<MathElement> mathElements = source
 //                .flatMap(new BaseXRequestMapper())

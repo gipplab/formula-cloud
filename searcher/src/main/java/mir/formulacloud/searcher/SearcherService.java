@@ -287,12 +287,6 @@ public class SearcherService {
     }
 
     public static void main(String[] args) throws IOException {
-//        MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
-//        FastTest t = new FastTest();
-//        t.init();
-//        t.theTest();
-//        t.end();
-
         SearcherConfig config = SearcherConfig.loadConfig(args);
         CLISearcher cliSearcher = new CLISearcher(config);
         cliSearcher.init();

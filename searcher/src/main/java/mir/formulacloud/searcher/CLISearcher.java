@@ -69,6 +69,10 @@ public class CLISearcher extends SearcherService {
             "SEARCH\\s*(-expect ([^\\s]*))? (.*)$"
     );
 
+    private static final Pattern RETRIEVE_ALL_CMD = Pattern.compile(
+            "\\s*RETRIEVE ALL\\s*"
+    );
+
     private String currentIndex = "arxiv";
     private int showNumberOfResults = 10;
     private int minEShits = 1;
@@ -108,6 +112,16 @@ public class CLISearcher extends SearcherService {
         Matcher getMatcher = GET_CMDS.matcher(input);
         if (getMatcher.matches()) {
             getter(getMatcher);
+            return;
+        }
+
+        Matcher retrieveAllMatcher = RETRIEVE_ALL_CMD.matcher(input);
+        if (retrieveAllMatcher.matches()){
+            try {
+                runAll();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -156,6 +170,8 @@ public class CLISearcher extends SearcherService {
     }
 
     public void runAll() throws IOException {
+        LOG.info("Set MIN Depth to 3");
+        config.setMinDepth(3);
         minEShits = config.getMinDocumentFrequency();
         showNumberOfResults = 300;
         LOG.info("Requesting all files from folder.");
@@ -218,6 +234,7 @@ public class CLISearcher extends SearcherService {
         sb.append("EXPORT LAST <s>          - export the last results with MathML to given path").append(NL);
         sb.append("SEARCH <s>               - runs the program for given search query").append(NL);
         sb.append("SEARCH -expect <s> <s>   - runs the program for given search query and a given expected value (as java regex)").append(NL);
+        sb.append("RETRIEVE ALL             - runs the program for extracting all math in the database").append(NL);
         System.out.println(sb.toString());
     }
 
