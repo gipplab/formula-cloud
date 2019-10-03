@@ -213,9 +213,9 @@ public class FastTest {
 
     private static void printPretty(List<TFIDFMathElement> results){
         System.out.println("Pretty Printed Top Results:");
-        for (int i = 0; i < 300 && i < results.size(); i++){
+        for (int i = 0; i < results.size(); i++){
             TFIDFMathElement e = results.get(i);
-            System.out.println(e);
+            System.out.println(i+1 + ": " + e.toString());
 //            System.out.println(e.getScore() + ", <math>" + SimpleMMLConverter.stringToMML(e.getExpression()) + "</math>");
         }
     }

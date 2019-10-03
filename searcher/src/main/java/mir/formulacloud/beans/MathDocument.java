@@ -42,8 +42,8 @@ public class MathDocument {
 
     private double esSearchPrecision;
 
-    private static final int ARXIV_DOCS = 841_008;
-    private static final int ZBMATH_DOCS = 1_349_297;
+    public static final int ARXIV_DOCS = 841_008;
+    public static final int ZBMATH_DOCS = 1_349_297;
 
     private static final int ARXIV_MATH = 294_151_288;
     private static final int ZBMATH_MATH = 11_747_860;

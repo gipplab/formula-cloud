@@ -160,16 +160,37 @@ public class SearcherService {
 
     public List<MathDocument> requestMath(List<MathDocument> documents){
         LOG.info("Collecting math for each document from BaseX.");
-        for (MathDocument doc : documents){
-            if (doc == null) continue;
-            LOG.info("Requesting math for " + doc.getDocID());
-            doc.requestMathFromBasex(config);
-        }
-//        documents
-//                .stream()
-//                .filter(Objects::nonNull)
-//                .parallel()
-//                .forEach(e -> e.requestMathFromBasex(config));
+//        int counter = 0;
+//
+//        for (MathDocument doc : documents){
+//            if (doc == null) continue;
+//            LOG.info("Requesting math for " + doc.getDocID());
+//            doc.requestMathFromBasex(config);
+//            counter++;
+//            System.out.print(String.format(
+//                    "\rFinished %07d/%07d",
+//                    counter,
+//                    MathDocument.ZBMATH_DOCS
+//                    )
+//            );
+//        }
+
+        int[] counter = new int[]{0};
+        documents
+                .stream()
+                .filter(Objects::nonNull)
+                .parallel()
+                .forEach(e -> {
+                    e.requestMathFromBasex(config);
+                    counter[0] += 1;
+                    System.out.print(String.format(
+                            "\rFinished %07d/%07d",
+                            counter[0],
+                            MathDocument.ZBMATH_DOCS
+                            )
+                    );
+                });
+
         return documents;
     }
 
@@ -266,6 +287,7 @@ public class SearcherService {
     }
 
     public static void main(String[] args) throws IOException {
+        MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
         FastTest t = new FastTest();
         t.init();
         t.theTest();
