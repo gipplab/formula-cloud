@@ -72,7 +72,7 @@ public class FastTest {
         System.out.println("Setup empty math docs");
         Files
                 .walk(Paths.get(config.getDatabaseParentFolder()))
-                .sequential() // mandatory, otherwise the hashmaps may vary in sizes and entries
+                .parallel() // mandatory, otherwise the hashmaps may vary in sizes and entries
                 .filter( p -> Files.isRegularFile(p))
                 .forEach( p -> {
                     String fileName = FilenameUtils.removeExtension(p.getFileName().toString());
