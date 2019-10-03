@@ -40,6 +40,6 @@ public class TFIDFOptions {
     }
 
     public static TFIDFOptions getDefaultTFIDFOption(){
-        return new TFIDFOptions(TermFrequencies.RELATIVE, InverseDocumentFrequencies.IDF);
+        return new TFIDFOptions(TermFrequencies.BM25, InverseDocumentFrequencies.BM25_IDF);
     }
 }

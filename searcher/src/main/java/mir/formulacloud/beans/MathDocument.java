@@ -218,7 +218,7 @@ public class MathDocument {
                 double b = options.getB();
 
                 total = maxCountPerDepthTable.get(docMathElement.getDepth()-1);
-                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*(documentLength/AVGDL)));
+                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*(AVGDL/documentLength)));
             }
 
             double idf = idfSetting.calculate(tfidfReference.getDocFrequency(), totalDocs);

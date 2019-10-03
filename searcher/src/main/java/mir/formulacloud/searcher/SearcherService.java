@@ -161,11 +161,11 @@ public class SearcherService {
     public List<MathDocument> requestMath(List<MathDocument> documents){
         LOG.info("Collecting math for each document from BaseX.");
 //        int counter = 0;
-//
-//        for (MathDocument doc : documents){
-//            if (doc == null) continue;
-//            LOG.info("Requesting math for " + doc.getDocID());
-//            doc.requestMathFromBasex(config);
+
+        for (MathDocument doc : documents){
+            if (doc == null) continue;
+            LOG.info("Requesting math for " + doc.getDocID());
+            doc.requestMathFromBasex(config);
 //            counter++;
 //            System.out.print(String.format(
 //                    "\rFinished %07d/%07d",
@@ -173,23 +173,23 @@ public class SearcherService {
 //                    MathDocument.ZBMATH_DOCS
 //                    )
 //            );
-//        }
+        }
 
-        int[] counter = new int[]{0};
-        documents
-                .stream()
-                .filter(Objects::nonNull)
-                .parallel()
-                .forEach(e -> {
-                    e.requestMathFromBasex(config);
-                    counter[0] += 1;
-                    System.out.print(String.format(
-                            "\rFinished %07d/%07d",
-                            counter[0],
-                            MathDocument.ZBMATH_DOCS
-                            )
-                    );
-                });
+//        int[] counter = new int[]{0};
+//        documents
+//                .stream()
+//                .filter(Objects::nonNull)
+//                .parallel()
+//                .forEach(e -> {
+//                    e.requestMathFromBasex(config);
+//                    counter[0] += 1;
+//                    System.out.print(String.format(
+//                            "\rFinished %07d/%07d",
+//                            counter[0],
+//                            MathDocument.ZBMATH_DOCS
+//                            )
+//                    );
+//                });
 
         return documents;
     }
@@ -287,32 +287,32 @@ public class SearcherService {
     }
 
     public static void main(String[] args) throws IOException {
-        MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
-        FastTest t = new FastTest();
-        t.init();
-        t.theTest();
-        t.end();
+//        MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+//        FastTest t = new FastTest();
+//        t.init();
+//        t.theTest();
+//        t.end();
 
-//        SearcherConfig config = SearcherConfig.loadConfig(args);
-//        CLISearcher cliSearcher = new CLISearcher(config);
-//        cliSearcher.init();
-//
-//        if ( config.getFixedIndex().equals("zbmath") ){
-//            MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
-//        } else {
-//            MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
+        SearcherConfig config = SearcherConfig.loadConfig(args);
+        CLISearcher cliSearcher = new CLISearcher(config);
+        cliSearcher.init();
+
+        if ( config.getFixedIndex().equals("zbmath") ){
+            MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+        } else {
+            MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
+        }
+
+        double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
+        System.out.println("Finish initialization - Memory usage now: " + mem + " MB");
+
+//        try {
+////            cliSearcher.runZBMath("EigenvalueIDs");
+//            cliSearcher.runAll();
+//        } catch (IOException e) {
+//            e.printStackTrace();
 //        }
-//
-//        double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
-//        System.out.println("Finish initialization - Memory usage now: " + mem + " MB");
-//
-////        try {
-//////            cliSearcher.runZBMath("EigenvalueIDs");
-////            cliSearcher.runAll();
-////        } catch (IOException e) {
-////            e.printStackTrace();
-////        }
-//
-//        cliSearcher.start();
+
+        cliSearcher.start();
     }
 }

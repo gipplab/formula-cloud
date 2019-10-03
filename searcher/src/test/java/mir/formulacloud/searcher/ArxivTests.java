@@ -34,8 +34,8 @@ public class ArxivTests {
     private static List<MathDocument> mathDocs;
 
     // best settings: ESHits 20, MinDoc30, MinHit5, NORM_IDF
-    private static final String searchQuery = "Riemann Zeta Function";
-    private static final String expected = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
+//    private static final String searchQuery = "Riemann Zeta Function";
+//    private static final String expected = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
 //    private static final String expected = ".*mi:ζ.*";
 
     // best setting: ESHits 20, MinDoc10, MinHit5, NORM_IDF
@@ -43,8 +43,8 @@ public class ArxivTests {
 //    private static final String expected = ".*mi:B.*";
 
     // best setting: ESHits 20, MinDoc30, MinHit5, NORM_IDF
-//    private static final String searchQuery = "Jacobi Polynomial";
-//    private static final String expected = ".*msubsup\\(mi:P.*\\).*|.*mo:&gt.*";
+    private static final String searchQuery = "Jacobi Polynomial";
+    private static final String expected = ".*msubsup\\(mi:P.*\\).*|.*mo:&gt.*";
 
     private static MathMergeFunctions mergeF;
 
@@ -53,19 +53,22 @@ public class ArxivTests {
         config = new SearcherConfig();
         config.setTfidfData("/opt/zbmath/tfidf");
         config.setDatabaseParentFolder("/opt/zbmath/empty-dump/");
+
         config.setElasticsearchMaxHits(200);
-
-        config.setMaxDocumentFrequency(100_000);
-        mergeF = MathMergeFunctions.MAX;
-
         config.setMinTermFrequency(1);
+        config.setMaxDocumentFrequency(100_000);
+
+        mergeF = MathMergeFunctions.MAX;
 
         service = new SearcherService(config);
         service.init();
 
+        MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+
         SearchHits hits = service.getSearchResults(searchQuery, index);
         mathDocs = service.getMathResults(hits);
         mathDocs = service.requestMath(mathDocs);
+
 
         double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
         System.out.println("Finish setup - Memory usage now: " + mem + " MB");
@@ -89,7 +92,7 @@ public class ArxivTests {
 
     @ParameterizedTest
     @EnumSource(value = TFIDFs.class)
-    public void testTFIDFOptionsMinDoc25MinHit9(TFIDFs options){
+    public void testTFIDFOptionsMinDoc25MinHit10(TFIDFs options){
         config.setMinDocumentFrequency(25);
         System.out.println(options.msg);
         compute(options.getOptions(), 9);
@@ -97,7 +100,7 @@ public class ArxivTests {
 
     @ParameterizedTest
     @EnumSource(value = TFIDFs.class)
-    public void testTFIDFOptionsMinDoc50MinHit9(TFIDFs options){
+    public void testTFIDFOptionsMinDoc50MinHit10(TFIDFs options){
         config.setMinDocumentFrequency(50);
         System.out.println(options.msg);
         compute(options.getOptions(), 9);
