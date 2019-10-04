@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Andre Greiner-Petter
@@ -63,51 +64,38 @@ public class TFIDFCalculator {
 
         DataSet<Path> source = environment.fromCollection(set);
 
+        source
+                .flatMap( new BaseXRequestMapper() )
+                .groupBy(0) // Expression
+                .sum(1)     // TF
+                .andSum(3)
+                .setParallelism(config.getParallelism())
+                .writeAsCsv(
+                        config.getOutputF(),
+                        "\n",
+                        ";",
+                        FileSystem.WriteMode.OVERWRITE
+                )
+                .setParallelism(config.getNumOfOutputFiles());
 
-        // Tuple4: ExpressionString, Depth, Term Frequency, Document Frequency
-//        DataSet<Tuple4<String, Short, Integer, Integer>> mathElements = source
-//                .flatMap(new BaseXRequestMapper())
-//                .setParallelism(config.getParallelism())
-//                .groupBy(0) // group on strings
-//                .sum(2)     // sum up TF
-//                .andSum(3) // sum up DF
-//                .setParallelism(config.getParallelism()*4);
-
-//        DataSet<MathElement> mathElements = source
-//                .flatMap(new BaseXRequestMapper())
-//                .groupBy("expression")
-//                .reduce(new MathElementMerger())
-//                .setParallelism(config.getParallelism()*4);
-
-//                .setCombineHint(ReduceOperatorBase.CombineHint.HASH)
-//                .setParallelism(config.getParallelism()*4);
-
-//        if ( !config.getOutputF().isEmpty() ){
-//            mathElements
-//                    .writeAsCsv(
-//                            config.getOutputF(),
-//                            "\n",
-//                            ";",
-//                            FileSystem.WriteMode.OVERWRITE
-//                    )
-//                    .setParallelism(config.getNumOfOutputFiles());
-//        }
-//        else {
-//            LOG.info("Done! Trigger Flink execution. Write the output directly to console.");
-//            mathElements.print();
-//        }
+        LOG.info("Done planning Flink schedule.");
     }
-//
-//    public void execute() throws Exception {
-//        LOG.info("Done! Trigger Flink execution. Write files to specified output.");
-//        environment.execute();
-//    }
+
+    public void execute() throws Exception {
+        LOG.info("Done! Trigger Flink execution. Write files to specified output.");
+        environment.execute();
+    }
 
     private static long startTimer = -1;
 
     public static void update(){
+        if ( startTimer < 0 ) startTimer = System.currentTimeMillis();
+
         double perc = (double)PROCESSED/NUM_OF_FILES;
         int n = (int)(perc*50);
+
+        long timeSpan = System.currentTimeMillis() - startTimer; // time span until now
+        long estimatedRestTime = timeSpan - (long)(timeSpan/perc);
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++){
@@ -116,43 +104,52 @@ public class TFIDFCalculator {
         if (n < 50) sb.append(">");
 
         String i = String.format(
-                "\rFinished %05.2f%% [%-50s] %06d/%06d",
+                "\rFinished %05.2f%% [%-50s] %06d/%06d - Estimated Rest Time: %02d:%02d:%02d",
                 perc*100,
                 sb.toString(),
                 PROCESSED,
-                NUM_OF_FILES
+                NUM_OF_FILES,
+                TimeUnit.MILLISECONDS.toHours(estimatedRestTime),
+                TimeUnit.MILLISECONDS.toMinutes(estimatedRestTime) % 60,
+                TimeUnit.MILLISECONDS.toSeconds(estimatedRestTime) % 60
         );
         System.out.print(i);
     }
 
     public static void main(String[] args) throws Exception {
-//        long start = System.currentTimeMillis();
-//        TFIDFConfig config = new TFIDFConfig();
-//
-//        // parse config
-//        JCommander jcommander = JCommander
-//                .newBuilder()
-//                .addObject(config)
-//                .build();
-//
-//        jcommander.parse(args);
-//
-//        if (config.isHelp()){
-//            jcommander.usage();
-//            return;
-//        }
-//
-//        // create and init calculator
-//        TFIDFCalculator calculator = new TFIDFCalculator(config);
-//        LinkedList<String> fileList = calculator.initPreExecutionPlan();
-//        calculator.initExecutionPlan(fileList);
-//        if ( !config.getOutputF().isEmpty() )
-//            calculator.execute();
-//
+        long start = System.currentTimeMillis();
+        TFIDFConfig config = new TFIDFConfig();
+
+        // parse config
+        JCommander jcommander = JCommander
+                .newBuilder()
+                .addObject(config)
+                .build();
+
+        jcommander.parse(args);
+
+        if (config.isHelp()){
+            jcommander.usage();
+            return;
+        }
+
+        // create and init calculator
+        TFIDFCalculator calculator = new TFIDFCalculator(config);
+        LinkedList<Path> fileList = calculator.retrieveFiles();
+        calculator.initExecutionPlan(fileList);
+        if ( !config.getOutputF().isEmpty() )
+            calculator.execute();
+
 //        BaseXController.closeAllClients();
-//        long stop = System.currentTimeMillis() - start;
-//        LOG.info("Time Elapsed: " + stop + "ms");
-//        System.out.println("Done");
-//        System.out.println("Time Elapsed: " + stop + "ms");
+        long stop = System.currentTimeMillis() - start;
+        LOG.info("Time Elapsed: " + stop + "ms");
+        System.out.println();
+        System.out.println("Done");
+
+        String format = String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(stop),
+                TimeUnit.MILLISECONDS.toSeconds(stop)%60
+        );
+        System.out.println("Time Elapsed: " + format);
     }
 }

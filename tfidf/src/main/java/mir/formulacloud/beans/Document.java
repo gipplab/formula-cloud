@@ -26,12 +26,17 @@ public class Document {
     private LinkedList<Short> depths;
     private LinkedList<Short> termFrequencies;
 
-    public Document () {}
+    public Document () {
+        init();
+    }
 
     public Document ( String db, String filename ) {
         this.DB = db;
         this.filename = filename;
+        init();
+    }
 
+    private void init(){
         expressions = new LinkedList<>();
         termFrequencies = new LinkedList<>();
         depths = new LinkedList<>();

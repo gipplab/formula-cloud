@@ -5,8 +5,8 @@ import mir.formulacloud.beans.Document;
 import mir.formulacloud.util.Constants;
 import mir.formulacloud.util.XQueryLoader;
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.util.Collector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,20 +14,19 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 
 /**
  * @author Andre Greiner-Petter
  */
-public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple3<String, Integer, Short>> {
+public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple4<String, Short, Integer, Integer>> {
     private static final Logger LOG = LogManager.getLogger(BaseXRequestMapper.class.getName());
 
     public BaseXRequestMapper() {}
 
     @Override
-    public void flatMap(Path path, Collector<Tuple3<String, Integer, Short>> collector) {
+    public void flatMap(Path path, Collector<Tuple4<String, Short, Integer, Integer>> collector) {
         try {
             Document doc = Document.parseDocument(path);
 
@@ -37,25 +36,21 @@ public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple3<String, 
             int counter = 0;
 
             while ( !expressions.isEmpty() ){
-                Tuple3<String, Integer, Short> entry = new Tuple3<>(
+                Tuple4<String, Short, Integer, Integer> entry = new Tuple4<>(
                         expressions.pop(),
+                        depths.pop(),
                         (int)freqs.pop(),
-                        depths.pop()
+                        1
                 );
 
                 collector.collect(entry);
                 counter++;
             }
 
-//            TFIDFCalculator.PROCESSED++;
-//            String msg = String.format(
-//                    "Finished %10s (%5s); Contained %3d math expressions; Processed: %6d / %d",
-//                    docID,
-//                    db,
-//                    counter,
-//                    Splitter.PROCESSED,
-//                    Splitter.NUM_OF_FILES
-//            );
+            LOG.info("Successfully extracted " + counter + " lines from " + path.toString());
+
+            TFIDFCalculator.PROCESSED++;
+            TFIDFCalculator.update();
         } catch (IOException e) {
             LOG.error("Cannot parse document " + path.toString(), e);
         }
