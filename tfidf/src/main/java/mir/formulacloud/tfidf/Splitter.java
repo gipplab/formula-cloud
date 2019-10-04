@@ -66,7 +66,7 @@ public class Splitter {
         outerPool.submit(
                 () -> set
                         .stream()
-                        .sequential()
+                        .parallel()
                         .map( BaseXRequestMapper::getDocument )
                         .filter( Document::isNotEmpty )
                         .forEach( doc -> {

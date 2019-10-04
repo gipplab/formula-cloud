@@ -1,14 +1,23 @@
 package mir.formulacloud.beans;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Andre Greiner-Petter
  */
 public class Document {
-
     public static final String SPLITTER_DATA = " #-<>-# ";
     public static final String SPLITTER_ENTRY = System.lineSeparator();
+
+    public static Pattern entryPattern = Pattern.compile(
+            "^(.*)" + SPLITTER_DATA + "(.*)" + SPLITTER_DATA + "(.*)\\s*$"
+    );
+
 
     private String DB;
     private String filename;
@@ -65,39 +74,35 @@ public class Document {
         return DB;
     }
 
-    public void setDB(String DB) {
-        this.DB = DB;
-    }
-
     public String getFilename() {
         return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
     }
 
     public LinkedList<String> getExpressions() {
         return expressions;
     }
 
-    public void setExpressions(LinkedList<String> expressions) {
-        this.expressions = expressions;
-    }
-
     public LinkedList<Short> getTermFrequencies() {
         return termFrequencies;
-    }
-
-    public void setTermFrequencies(LinkedList<Short> termFrequencies) {
-        this.termFrequencies = termFrequencies;
     }
 
     public LinkedList<Short> getDepths() {
         return depths;
     }
 
-    public void setDepths(LinkedList<Short> depths) {
-        this.depths = depths;
+    public static Document parseDocument(Path p) throws IOException {
+        Document d = new Document();
+        Files.lines(p)
+                .forEach( l -> {
+                    Matcher matcher = entryPattern.matcher(l);
+                    if ( matcher.matches() ){
+                        d.addFormula(
+                                matcher.group(1),
+                                Short.parseShort(matcher.group(2)),
+                                Short.parseShort(matcher.group(3))
+                        );
+                    }
+                } );
+        return d;
     }
 }

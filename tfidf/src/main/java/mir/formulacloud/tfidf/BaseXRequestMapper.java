@@ -12,19 +12,51 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 
 /**
  * @author Andre Greiner-Petter
  */
-public class BaseXRequestMapper implements FlatMapFunction<String, Tuple3<String, Short, Short>> {
+public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple3<String, Integer, Short>> {
     private static final Logger LOG = LogManager.getLogger(BaseXRequestMapper.class.getName());
 
     public BaseXRequestMapper() {}
 
     @Override
-    public void flatMap(String docID, Collector<Tuple3<String, Short, Short>> collector) {
-        // call getDocument
+    public void flatMap(Path path, Collector<Tuple3<String, Integer, Short>> collector) {
+        try {
+            Document doc = Document.parseDocument(path);
+
+            LinkedList<String> expressions = doc.getExpressions();
+            LinkedList<Short> freqs = doc.getTermFrequencies();
+            LinkedList<Short> depths = doc.getDepths();
+            int counter = 0;
+
+            while ( !expressions.isEmpty() ){
+                Tuple3<String, Integer, Short> entry = new Tuple3<>(
+                        expressions.pop(),
+                        (int)freqs.pop(),
+                        depths.pop()
+                );
+
+                collector.collect(entry);
+                counter++;
+            }
+
+//            TFIDFCalculator.PROCESSED++;
+//            String msg = String.format(
+//                    "Finished %10s (%5s); Contained %3d math expressions; Processed: %6d / %d",
+//                    docID,
+//                    db,
+//                    counter,
+//                    Splitter.PROCESSED,
+//                    Splitter.NUM_OF_FILES
+//            );
+        } catch (IOException e) {
+            LOG.error("Cannot parse document " + path.toString(), e);
+        }
     }
 
     public static Document getDocument(String docID){
