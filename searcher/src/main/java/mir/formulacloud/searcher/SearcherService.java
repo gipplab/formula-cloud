@@ -292,9 +292,9 @@ public class SearcherService {
         cliSearcher.init();
 
         if ( config.getFixedIndex().equals("zbmath") ){
-            MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+            MathDocument.setZBMATHMode();
         } else {
-            MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
+            MathDocument.setArxivMode();
         }
 
         double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);

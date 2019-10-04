@@ -70,3 +70,8 @@ Counting all lines in all files (make sure parallel is installed):
 ```bash
 find . -name "*" | parallel 'wc -l {}' 2>/dev/null | awk '{print $1}' | paste -sd+ - | bc
 ```
+
+Sum of numbers in rawDepthFrequencies list
+```bash
+awk '{ sum += $1 }; END { print sum }' rawDepthFrequencies.txt
+```

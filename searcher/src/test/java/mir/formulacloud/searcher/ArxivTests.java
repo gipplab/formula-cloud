@@ -63,7 +63,7 @@ public class ArxivTests {
         service = new SearcherService(config);
         service.init();
 
-        MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+        MathDocument.setZBMATHMode();
 
         SearchHits hits = service.getSearchResults(searchQuery, index);
         mathDocs = service.getMathResults(hits);
@@ -251,6 +251,8 @@ public class ArxivTests {
 //    }
 
     private static void compute(TFIDFOptions options, int minHitFrequency){
+//        options.setK1(0.2);
+
         HashMap<String, List<TFIDFMathElement>> tfidfMath =
                 service.mapMathDocsToTFIDFElements(mathDocs, DOCS, options);
         List<TFIDFMathElement> results = service.groupTFIDFElements(tfidfMath, mergeF, minHitFrequency);

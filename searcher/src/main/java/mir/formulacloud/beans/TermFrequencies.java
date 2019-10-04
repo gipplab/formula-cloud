@@ -12,7 +12,7 @@ public enum TermFrequencies {
     BM25(       (r,t) ->
             r * (TermFrequencies.k1+1)
                     / (r + TermFrequencies.k1*(
-                            1-TermFrequencies.b + TermFrequencies.b*t/MathDocument.AVGDL
+                            1-TermFrequencies.b + TermFrequencies.b*t/MathDocument.getCurrentAVGDL()
                     ))
     );
 

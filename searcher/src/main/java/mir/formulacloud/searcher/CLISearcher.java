@@ -256,9 +256,9 @@ public class CLISearcher extends SearcherService {
             currentIndex = match.group(CMD_INDEX);
             System.out.println("Set index to " + currentIndex);
             if ( currentIndex.equals("zbmath") ){
-                MathDocument.AVGDL = MathDocument.ZBMATH_AVGDL;
+                MathDocument.setZBMATHMode();
             } else {
-                MathDocument.AVGDL = MathDocument.ARXIV_AVGDL;
+                MathDocument.setArxivMode();
             }
         } else if (match.group(CMD_ESHITS) != null){
             int n = Integer.parseInt(match.group(CMD_ESHITS));

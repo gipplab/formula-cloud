@@ -1,94 +1,90 @@
 package mir.formulacloud.tfidf;
 
 import com.formulasearchengine.mathosphere.basex.BaseXClient;
-import mir.formulacloud.beans.MathElement;
+import mir.formulacloud.beans.Document;
 import mir.formulacloud.util.Constants;
 import mir.formulacloud.util.XQueryLoader;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple4;
-import org.apache.flink.util.Collector;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Andre Greiner-Petter
  */
-public class BaseXRequestMapper implements FlatMapFunction<String, Tuple4<String, Short, Integer, Integer>> {
+public class BaseXRequestMapper implements MapFunction<String, Document> {
     private static final Logger LOG = LogManager.getLogger(BaseXRequestMapper.class.getName());
 
     public BaseXRequestMapper() {}
 
     @Override
-    public void flatMap(String docID, Collector<Tuple4<String, Short, Integer, Integer>> collector) {
+    public Document map(String docID) {
         String query = XQueryLoader.getScript(docID);
-
         String db = BaseXController.getDBFromDocID(docID);
         BaseXClient client = BaseXController.getBaseXClient(docID);
 
-        if (db == null || client == null){
+        // check if document is empty or exists
+        if ( db == null || client == null ){
             // empty document
-            TFIDFCalculator.PROCESSED++;
-            TFIDFCalculator.EMPTY_FILES++;
+            Splitter.PROCESSED++;
+            Splitter.EMPTY_FILES++;
             String msg = String.format(
                     "Finished %10s (%5s); Contained %3d math expressions; Processed: %6d / %d",
                     docID,
                     db,
                     0,
-                    TFIDFCalculator.PROCESSED,
-                    TFIDFCalculator.NUM_OF_FILES
+                    Splitter.PROCESSED,
+                    Splitter.NUM_OF_FILES
             );
             LOG.warn(msg);
-            TFIDFCalculator.update();
-            return;
+            Splitter.update();
+            return new Document();
         }
 
+        // doc exists -> proceed
         LOG.info("Requesting math in " + docID + " (" + db + ")");
 
+        // lets measure time
         long start = System.currentTimeMillis();
-        try {
-            String results = client.execute("XQUERY " + query);
+        // create empty doc
+        Document doc = new Document(db, docID);
 
+        try {
+            // execute extraction script
+            String results = client.execute("XQUERY " + query);
+            // stop time
             start = System.currentTimeMillis() - start;
+
             LOG.debug("Received result from BaseX for " + docID + " (" + db + ") - it took " + start + "ms");
 
             int counter = 0;
             Matcher matcher = Constants.BASEX_ELEMENT_PATTERN.matcher(results);
+
+            // go through all hits
             while (matcher.find()) {
-                // found new line of math element
-                Tuple4<String, Short, Integer, Integer> element = new Tuple4<>(
+                doc.addFormula(
                         matcher.group(3),
-                        Short.parseShort(matcher.group(2)), // depth
-                        Integer.parseInt(matcher.group(1)), // TF
-                        1 // DF
+                        Short.parseShort(matcher.group(2)),
+                        Short.parseShort(matcher.group(1))
                 );
-
-//                MathElement element = new MathElement(
-//                        matcher.group(3),
-//                        Integer.parseInt(matcher.group(2)),
-//                        Integer.parseInt(matcher.group(1)),
-//                        1
-//                );
-
-                collector.collect(element);
                 counter++;
             }
 
-            TFIDFCalculator.PROCESSED++;
+            Splitter.PROCESSED++;
             String msg = String.format(
                     "Finished %10s (%5s); Contained %3d math expressions; Processed: %6d / %d",
                     docID,
                     db,
                     counter,
-                    TFIDFCalculator.PROCESSED,
-                    TFIDFCalculator.NUM_OF_FILES
+                    Splitter.PROCESSED,
+                    Splitter.NUM_OF_FILES
             );
+
             if (counter < 10){
                 if ( counter == 0 ){
-                    TFIDFCalculator.EMPTY_FILES++;
+                    Splitter.EMPTY_FILES++;
                 }
                 LOG.warn(msg);
             }
@@ -97,7 +93,88 @@ public class BaseXRequestMapper implements FlatMapFunction<String, Tuple4<String
             LOG.error("Cannot execute script to retrieve math (docID: " + docID + ")", e);
         } finally {
             BaseXController.returnBaseXClient(docID, client);
-            TFIDFCalculator.update();
+            Splitter.update();
+            return doc;
         }
     }
+
+//
+//    @Override
+//    public void flatMap(String docID, Collector<Tuple4<String, Short, Integer, Integer>> collector) {
+//        String query = XQueryLoader.getScript(docID);
+//
+//        String db = BaseXController.getDBFromDocID(docID);
+//        BaseXClient client = BaseXController.getBaseXClient(docID);
+//
+//        if (db == null || client == null){
+//            // empty document
+//            TFIDFCalculator.PROCESSED++;
+//            TFIDFCalculator.EMPTY_FILES++;
+//            String msg = String.format(
+//                    "Finished %10s (%5s); Contained %3d math expressions; Processed: %6d / %d",
+//                    docID,
+//                    db,
+//                    0,
+//                    TFIDFCalculator.PROCESSED,
+//                    TFIDFCalculator.NUM_OF_FILES
+//            );
+//            LOG.warn(msg);
+//            TFIDFCalculator.update();
+//            return;
+//        }
+//
+//        LOG.info("Requesting math in " + docID + " (" + db + ")");
+//
+//        long start = System.currentTimeMillis();
+//        try {
+//            String results = client.execute("XQUERY " + query);
+//
+//            start = System.currentTimeMillis() - start;
+//            LOG.debug("Received result from BaseX for " + docID + " (" + db + ") - it took " + start + "ms");
+//
+//            int counter = 0;
+//            Matcher matcher = Constants.BASEX_ELEMENT_PATTERN.matcher(results);
+//            while (matcher.find()) {
+//                // found new line of math element
+//                Tuple4<String, Short, Integer, Integer> element = new Tuple4<>(
+//                        matcher.group(3),
+//                        Short.parseShort(matcher.group(2)), // depth
+//                        Integer.parseInt(matcher.group(1)), // TF
+//                        1 // DF
+//                );
+//
+////                MathElement element = new MathElement(
+////                        matcher.group(3),
+////                        Integer.parseInt(matcher.group(2)),
+////                        Integer.parseInt(matcher.group(1)),
+////                        1
+////                );
+//
+//                collector.collect(element);
+//                counter++;
+//            }
+//
+//            TFIDFCalculator.PROCESSED++;
+//            String msg = String.format(
+//                    "Finished %10s (%5s); Contained %3d math expressions; Processed: %6d / %d",
+//                    docID,
+//                    db,
+//                    counter,
+//                    TFIDFCalculator.PROCESSED,
+//                    TFIDFCalculator.NUM_OF_FILES
+//            );
+//            if (counter < 10){
+//                if ( counter == 0 ){
+//                    TFIDFCalculator.EMPTY_FILES++;
+//                }
+//                LOG.warn(msg);
+//            }
+//            else LOG.info(msg);
+//        } catch (IOException e) {
+//            LOG.error("Cannot execute script to retrieve math (docID: " + docID + ")", e);
+//        } finally {
+//            BaseXController.returnBaseXClient(docID, client);
+//            TFIDFCalculator.update();
+//        }
+//    }
 }

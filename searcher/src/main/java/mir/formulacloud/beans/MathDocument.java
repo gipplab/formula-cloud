@@ -39,19 +39,25 @@ public class MathDocument {
     private HashMap<String, MathElement> mathElements;
 
     private ArrayList<Integer> maxCountPerDepthTable;
+    private int maxComplexity = 0;
+    private double avgComplexity = 0;
 
     private double esSearchPrecision;
 
-    public static final int ARXIV_DOCS = 841_008;
-    public static final int ZBMATH_DOCS = 1_349_297;
+    public static final int ARXIV_DOCS   =   841_008;
+    public static final int ZBMATH_DOCS  = 1_349_297;
 
-    private static final int ARXIV_MATH = 294_151_288;
-    private static final int ZBMATH_MATH = 11_747_860;
+    private static final int ARXIV_MATH  = 2_080_634_554;
+    private static final int ZBMATH_MATH =    61_355_307;
 
-    public static final double ARXIV_AVGDL = ARXIV_MATH / (double) ARXIV_DOCS;
+    public static final double ARXIV_AVGC  = 4.59;
+    public static final double ZBMATH_AVGC = 4.89;
+
+    public static final double ARXIV_AVGDL  = ARXIV_MATH / (double) ARXIV_DOCS;
     public static final double ZBMATH_AVGDL = ZBMATH_MATH / (double) ZBMATH_DOCS;
 
-    public static double AVGDL = ARXIV_AVGDL;
+    private static double AVGDL = ARXIV_AVGDL;
+    private static double AVGC  = ARXIV_AVGC;
 
     public MathDocument(String docID, String basexDB, double elasticsearchPrecision){
         this.docID = docID;
@@ -69,6 +75,24 @@ public class MathDocument {
         this.mathElements = new HashMap<>();
         this.xQuery = "XQUERY " + XQueryLoader.getZBScript(collection);
         this.maxCountPerDepthTable = new ArrayList<>();
+    }
+
+    public static void setArxivMode(){
+        AVGDL = ARXIV_AVGDL;
+        AVGC  = ARXIV_AVGC;
+    }
+
+    public static void setZBMATHMode(){
+        AVGDL = ZBMATH_AVGDL;
+        AVGC  = ZBMATH_AVGC;
+    }
+
+    public static double getCurrentAVGDL(){
+        return AVGDL;
+    }
+
+    public static double getCurrentAVGC() {
+        return AVGC;
     }
 
     public String getDocID() {
@@ -117,6 +141,7 @@ public class MathDocument {
 
             int minD = config.getMinDepth();
             Matcher matcher = Constants.BASEX_ELEMENT_PATTERN.matcher(results);
+
             while(matcher.find()){
                 MathElement element = new MathElement(
                         matcher.group(3),
@@ -126,11 +151,16 @@ public class MathDocument {
                 );
 
                 this.documentLength += element.getTotalFrequency();
+                this.avgComplexity += element.getDepth();
 
                 if ( element.getDepth() >= minD ){
                     int d = element.getDepth();
                     while ( maxCountPerDepthTable.size() < d ){
                         maxCountPerDepthTable.add(0);
+                    }
+
+                    if ( maxComplexity < d ){
+                        maxComplexity = d;
                     }
 
 //                    maxCountPerDepthTable.set(
@@ -145,6 +175,8 @@ public class MathDocument {
                     this.mathElements.put(element.expression, element);
                 }
             }
+
+            this.avgComplexity = this.avgComplexity / (double)this.documentLength;
 
             LOG.info("Finished requests for document " + docID + " [math elements: " + mathElements.size() + "]");
             counter++;
@@ -218,7 +250,7 @@ public class MathDocument {
                 double b = options.getB();
 
                 total = maxCountPerDepthTable.get(docMathElement.getDepth()-1);
-                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*(AVGDL/documentLength)));
+                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*(AVGC/this.avgComplexity)));
             }
 
             double idf = idfSetting.calculate(tfidfReference.getDocFrequency(), totalDocs);
