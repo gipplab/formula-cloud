@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author Andre Greiner-Petter
@@ -21,7 +23,7 @@ public class BaseXController {
     // pool size is controlled by parallelism level
     private volatile static HashMap<String, BaseXServerInstances> basexServers;
     private volatile static HashMap<String, String> docIDatabaseMapper;
-    private volatile static HashMap<String, List<BaseXClient>> poolMapper;
+    private volatile static HashMap<String, BlockingQueue<BaseXClient>> poolMapper;
     public static int CLIENT_COUNTER = 0;
     public static int SERVER_COUNTER = 0;
 
@@ -50,13 +52,14 @@ public class BaseXController {
             basexServers.put(key, bs);
 
             LOG.info("Initialize first client for basex db " + key);
-            LinkedList<BaseXClient> clients = new LinkedList<>();
+            BlockingQueue<BaseXClient> syncedClients = new LinkedBlockingQueue<>();
+
             for ( int i = 0; i < config.getDefaultClients(); i++ ){
                 BaseXClient client = establishNewConnection(key, port);
-                clients.push(client);
+                syncedClients.add(client);
                 LOG.info("Setup default client for " + key + ": " + (i+1));
             }
-            List<BaseXClient> syncedClients = Collections.synchronizedList(clients);
+
             poolMapper.put(key, syncedClients);
             port++;
         }
@@ -77,14 +80,20 @@ public class BaseXController {
     }
 
     public static BaseXClient getBaseXClientByDatabase(String db){
-        List<BaseXClient> dbPool = poolMapper.get(db);
+        BlockingQueue<BaseXClient> dbPool = poolMapper.get(db);
         BaseXServerInstances server = basexServers.get(db);
         if ( dbPool == null || server == null ){
             LOG.error("Unknown database " + db);
             System.exit(1);
         }
 
-        return doNotCreateNewClients(dbPool);
+        try {
+            return dbPool.take();
+        } catch (InterruptedException e) {
+            LOG.fatal("Why does somebody interrupted this man?");
+            return null;
+        }
+//        return doNotCreateNewClients(dbPool);
     }
 
     private static BaseXClient doNotCreateNewClients(List<BaseXClient> list){
@@ -93,6 +102,7 @@ public class BaseXController {
                 if (!list.isEmpty()) break;
             }
         }
+
         synchronized (list){
             try {
                 BaseXClient bc = list.remove(0);
@@ -117,7 +127,7 @@ public class BaseXController {
     }
 
     public static void returnBaseXClientByDatabase(String db, BaseXClient client){
-        List<BaseXClient> dbPool = poolMapper.get(db);
+        BlockingQueue<BaseXClient> dbPool = poolMapper.get(db);
         synchronized (dbPool){
             dbPool.add(client);
             LOG.debug("Kindly received a basexclient for "+ db +". Pool size: " + dbPool.size());
@@ -126,11 +136,11 @@ public class BaseXController {
 
     public synchronized static void closeAllClients(){
         for (String db : basexServers.keySet()){
-            List<BaseXClient> pool = poolMapper.get(db);
+            BlockingQueue<BaseXClient> pool = poolMapper.get(db);
             // stop all clients first
             while(!pool.isEmpty()){
                 try {
-                    pool.remove(0).close();
+                    pool.poll().close();
                 } catch (IOException e) {
                     LOG.error("Cannot close basexclients for " + db);
                 }

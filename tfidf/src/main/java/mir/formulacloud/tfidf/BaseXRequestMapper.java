@@ -12,7 +12,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 
@@ -59,9 +61,21 @@ public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple3<String, 
         }
     }
 
-    public static Document getDocument(String docID){
+    public static Document getDocument(String docID, Path outputPath){
         String query = XQueryLoader.getScript(docID);
         String db = BaseXController.getDBFromDocID(docID);
+
+        Path p = outputPath.resolve(db).resolve(docID);
+        if (Files.exists(p)){
+            // file already exist -> skip it
+            LOG.info("File already processed. Skip it. " + p.toString());
+
+            // empty document
+            Splitter.PROCESSED++;
+            Splitter.update();
+            return new Document();
+        }
+
         BaseXClient client = BaseXController.getBaseXClient(docID);
 
         // check if document is empty or exists
@@ -121,7 +135,7 @@ public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple3<String, 
                     Splitter.NUM_OF_FILES
             );
 
-            if (counter < 10){
+            if (counter < 2){
                 if ( counter == 0 ){
                     Splitter.EMPTY_FILES++;
                 }

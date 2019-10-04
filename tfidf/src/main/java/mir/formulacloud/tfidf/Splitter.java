@@ -67,8 +67,8 @@ public class Splitter {
                 () -> set
                         .stream()
                         .parallel()
-                        .map( BaseXRequestMapper::getDocument )
-                        .filter( Document::isNotEmpty )
+                        .map( f -> BaseXRequestMapper.getDocument(f, basePath) )
+                        .filter( d -> !d.isNull() )
                         .forEach( doc -> {
                             Path outF = basePath.resolve(doc.getDB() + "/");
                             if ( !Files.exists(outF) ){
