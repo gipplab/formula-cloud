@@ -9,10 +9,15 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.LinkedList;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Andre Greiner-Petter
@@ -32,6 +37,10 @@ public class Splitter {
     }
 
     public LinkedList<String> initPreExecutionPlan() throws Exception {
+//        LinkedList<String> dump = new LinkedList<>();
+//        dump.addFirst("1000474.xml");
+//        return dump;
+
         XQueryLoader.initMinTermFrequency(config.getMinTermFrequency());
         DatastructureAnalyzer dataAnalyzer = new DatastructureAnalyzer(config);
 
@@ -44,23 +53,50 @@ public class Splitter {
         }
     }
 
-    public void initExecutionPlan(LinkedList<String> set) {
-        Configuration flinkConfig = GlobalConfiguration.loadConfiguration("conf");
+    public void startProcessing(LinkedList<String> set) {
+//        Configuration flinkConfig = GlobalConfiguration.loadConfiguration("conf");
+//        environment = ExecutionEnvironment.createLocalEnvironment(flinkConfig);
 
-        environment = ExecutionEnvironment.createLocalEnvironment(flinkConfig);
+//        DataSet<String> source = environment.fromCollection(set);
 
-        DataSet<String> source = environment.fromCollection(set);
+        ForkJoinPool outerPool = new ForkJoinPool(config.getParallelism());
 
-        // Tuple4: ExpressionString, Depth, Term Frequency, Document Frequency
-        source.map(new BaseXRequestMapper())
-                .filter(new FilterEmptyDocuments())
-                .setParallelism(config.getParallelism())
-                .writeAsText(
-                        config.getOutputF()
-                )
-                .setParallelism(config.getNumOfOutputFiles());
+        Path basePath = Paths.get(config.getOutputF());
 
-        LOG.info("Done! Trigger Flink execution. Write the output directly to console.");
+        outerPool.submit(
+                () -> set
+                        .stream()
+                        .sequential()
+                        .map( BaseXRequestMapper::getDocument )
+                        .filter( Document::isNotEmpty )
+                        .forEach( doc -> {
+                            Path outF = basePath.resolve(doc.getDB() + "/");
+                            if ( !Files.exists(outF) ){
+                                LOG.info("DB folder does not exist. Create it now.");
+                                try {
+                                    Files.createDirectory(outF);
+                                } catch (IOException e) {
+                                    LOG.fatal("Cannot create directory, ", e);
+                                }
+                            }
+                            outF = outF.resolve(doc.getFilename());
+                            try {
+                                LOG.info("Writing " + doc.getDB() + "/" + doc.getFilename());
+                                Files.write(outF, doc.toString().getBytes(), StandardOpenOption.CREATE);
+                                LOG.debug("Finished writing " + doc.getDB() + "/" + doc.getFilename());
+                            } catch (IOException e) {
+                                LOG.error("Cannot write file " + doc.getFilename() + " in " + doc.getDB());
+                            }
+                        })
+        );
+
+        outerPool.shutdown();
+        try {
+            outerPool.awaitTermination(42, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            LOG.fatal("Cannot stop processing...", e);
+            e.printStackTrace();
+        }
     }
 
     public static void update(){
@@ -85,7 +121,7 @@ public class Splitter {
         System.out.print(i);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         long start = System.currentTimeMillis();
         TFIDFConfig config = new TFIDFConfig();
 
@@ -107,7 +143,7 @@ public class Splitter {
 
         try {
             LinkedList<String> fileList = splitter.initPreExecutionPlan();
-            splitter.initExecutionPlan(fileList);
+            splitter.startProcessing(fileList);
         } catch (Exception e) {
             LOG.fatal("Cannot init execution.", e);
             e.printStackTrace();

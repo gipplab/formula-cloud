@@ -4,7 +4,10 @@ import com.formulasearchengine.mathosphere.basex.BaseXClient;
 import mir.formulacloud.beans.Document;
 import mir.formulacloud.util.Constants;
 import mir.formulacloud.util.XQueryLoader;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.util.Collector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,13 +17,17 @@ import java.util.regex.Matcher;
 /**
  * @author Andre Greiner-Petter
  */
-public class BaseXRequestMapper implements MapFunction<String, Document> {
+public class BaseXRequestMapper implements FlatMapFunction<String, Tuple3<String, Short, Short>> {
     private static final Logger LOG = LogManager.getLogger(BaseXRequestMapper.class.getName());
 
     public BaseXRequestMapper() {}
 
     @Override
-    public Document map(String docID) {
+    public void flatMap(String docID, Collector<Tuple3<String, Short, Short>> collector) {
+        // call getDocument
+    }
+
+    public static Document getDocument(String docID){
         String query = XQueryLoader.getScript(docID);
         String db = BaseXController.getDBFromDocID(docID);
         BaseXClient client = BaseXController.getBaseXClient(docID);
@@ -48,7 +55,6 @@ public class BaseXRequestMapper implements MapFunction<String, Document> {
 
         // lets measure time
         long start = System.currentTimeMillis();
-        // create empty doc
         Document doc = new Document(db, docID);
 
         try {
@@ -65,10 +71,11 @@ public class BaseXRequestMapper implements MapFunction<String, Document> {
             // go through all hits
             while (matcher.find()) {
                 doc.addFormula(
-                        matcher.group(3),
-                        Short.parseShort(matcher.group(2)),
-                        Short.parseShort(matcher.group(1))
+                        matcher.group(3),                   // expression
+                        Short.parseShort(matcher.group(2)), // frequency
+                        Short.parseShort(matcher.group(1))  // depth
                 );
+
                 counter++;
             }
 
@@ -89,14 +96,16 @@ public class BaseXRequestMapper implements MapFunction<String, Document> {
                 LOG.warn(msg);
             }
             else LOG.info(msg);
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             LOG.error("Cannot execute script to retrieve math (docID: " + docID + ")", e);
         } finally {
             BaseXController.returnBaseXClient(docID, client);
             Splitter.update();
-            return doc;
         }
+
+        return doc;
     }
+
 
 //
 //    @Override

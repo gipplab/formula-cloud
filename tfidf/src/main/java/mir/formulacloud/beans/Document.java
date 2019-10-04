@@ -8,7 +8,7 @@ import java.util.LinkedList;
 public class Document {
 
     public static final String SPLITTER_DATA = " #-<>-# ";
-    public static final String SPLITTER_ENTRY = " <-#-> ";
+    public static final String SPLITTER_ENTRY = System.lineSeparator();
 
     private String DB;
     private String filename;
@@ -25,9 +25,10 @@ public class Document {
 
         expressions = new LinkedList<>();
         termFrequencies = new LinkedList<>();
+        depths = new LinkedList<>();
     }
 
-    public void addFormula(String expression, Short depth, Short frequency) {
+    public void addFormula(String expression, Short frequency, Short depth) {
         this.expressions.addLast(expression);
         this.depths.addFirst(depth);
         this.termFrequencies.addLast(frequency);
@@ -39,6 +40,10 @@ public class Document {
 
     public boolean isEmpty(){
         return expressions.isEmpty();
+    }
+
+    public boolean isNotEmpty() {
+        return !(isNull() || isEmpty());
     }
 
     @Override
@@ -86,5 +91,13 @@ public class Document {
 
     public void setTermFrequencies(LinkedList<Short> termFrequencies) {
         this.termFrequencies = termFrequencies;
+    }
+
+    public LinkedList<Short> getDepths() {
+        return depths;
+    }
+
+    public void setDepths(LinkedList<Short> depths) {
+        this.depths = depths;
     }
 }
