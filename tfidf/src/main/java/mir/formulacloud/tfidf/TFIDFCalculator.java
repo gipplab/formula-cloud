@@ -1,6 +1,7 @@
 package mir.formulacloud.tfidf;
 
 import com.beust.jcommander.JCommander;
+import mir.formulacloud.beans.Document;
 import mir.formulacloud.beans.MathElement;
 import mir.formulacloud.util.TFIDFConfig;
 import mir.formulacloud.util.XQueryLoader;
@@ -66,9 +67,9 @@ public class TFIDFCalculator {
 
         source
                 .flatMap( new BaseXRequestMapper() )
-                .groupBy(0) // Expression
-                .sum(1)     // TF
-                .andSum(3)
+                .groupBy(Document.IDX_EXPR-1) // Expression
+                .sum(Document.IDX_FREQ-1)   // TF
+                .andSum(3)                    // DF
                 .setParallelism(config.getParallelism())
                 .writeAsCsv(
                         config.getOutputF(),

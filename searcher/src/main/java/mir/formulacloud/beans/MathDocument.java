@@ -250,7 +250,11 @@ public class MathDocument {
                 double b = options.getB();
 
                 total = maxCountPerDepthTable.get(docMathElement.getDepth()-1);
-                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*(AVGC/this.avgComplexity)));
+                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*((AVGDL)/(this.documentLength*this.avgComplexity))));
+//                tf = (docMathElement.getTotalFrequency() * (k + 1)) / (total + k*(1-b+b*(AVGDL/this.documentLength)));
+
+                double innerIDF = idfSetting.calculate(docMathElement.getTotalFrequency(), this.documentLength);
+                tf *= innerIDF;
             }
 
             double idf = idfSetting.calculate(tfidfReference.getDocFrequency(), totalDocs);

@@ -18,6 +18,10 @@ public class Document {
             "^(.*)" + SPLITTER_DATA + "(.*)" + SPLITTER_DATA + "(.*)\\s*$"
     );
 
+    public static final int IDX_EXPR    = 1;
+    public static final int IDX_DEPTH   = 2;
+    public static final int IDX_FREQ    = 3;
+
 
     private String DB;
     private String filename;
@@ -42,9 +46,15 @@ public class Document {
         depths = new LinkedList<>();
     }
 
-    public void addFormula(String expression, Short frequency, Short depth) {
+    /**
+     * Expr -> Depth -> Freq
+     * @param expression
+     * @param depth
+     * @param frequency
+     */
+    public void addFormula(String expression, Short depth, Short frequency) {
         this.expressions.addLast(expression);
-        this.depths.addFirst(depth);
+        this.depths.addLast(depth);
         this.termFrequencies.addLast(frequency);
     }
 
@@ -102,9 +112,9 @@ public class Document {
                     Matcher matcher = entryPattern.matcher(l);
                     if ( matcher.matches() ){
                         d.addFormula(
-                                matcher.group(1),
-                                Short.parseShort(matcher.group(2)),
-                                Short.parseShort(matcher.group(3))
+                                matcher.group(IDX_EXPR),
+                                Short.parseShort(matcher.group(IDX_DEPTH)),
+                                Short.parseShort(matcher.group(IDX_FREQ))
                         );
                     }
                 } );

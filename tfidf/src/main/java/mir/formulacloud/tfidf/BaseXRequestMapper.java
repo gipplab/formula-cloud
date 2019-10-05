@@ -112,9 +112,9 @@ public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple4<String, 
             // go through all hits
             while (matcher.find()) {
                 doc.addFormula(
-                        matcher.group(3),                   // expression
-                        Short.parseShort(matcher.group(2)), // frequency
-                        Short.parseShort(matcher.group(1))  // depth
+                        matcher.group(Constants.BX_IDX_EXPR),                   // expression
+                        Short.parseShort(matcher.group(Constants.BX_IDX_DEPTH)),// frequency
+                        Short.parseShort(matcher.group(Constants.BX_IDX_FREQ))  // depth
                 );
 
                 counter++;
