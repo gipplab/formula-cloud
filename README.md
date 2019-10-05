@@ -75,3 +75,8 @@ Sum of numbers in rawDepthFrequencies list
 ```bash
 awk '{ sum += $1 }; END { print sum }' rawDepthFrequencies.txt
 ```
+
+Average depth
+```bash
+gawk 'match($0, /(.*);(.*)/, ary) {sum += ary[2]}; END {print sum/8450496}' rawDepthFrequencies.txt
+```
