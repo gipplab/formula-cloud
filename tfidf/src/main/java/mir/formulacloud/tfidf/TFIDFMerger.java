@@ -38,26 +38,26 @@ public class TFIDFMerger {
         }
     }
 
-    public void merge(Path... files) {
-        if ( files.length < 2 ){
-            LOG.info("Nothing todo here... you only wanted to merge one or less files.");
-        }
-
+    public void loadRef(LinkedList<Path> files) {
         LOG.info("Loading reference to cache.");
         // get reference
-        Path ref = files[0];
-        try (Stream<String> lines = Files.lines(ref)) {
-            loadToCache(lines).forEach( e -> memory.put( e.getExpression(), e ));
-            double heapSize = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
-            LOG.info("Loaded TF-IDF math elements from " + ref.toString() + " [#" + memory.size() + "; Mem: "+heapSize+" MB]");
-        } catch ( IOException ioe ) {
-            LOG.fatal("Cannot read TF-IDF file " + ref);
-            return;
+        for ( Path p : files ){
+            try (Stream<String> lines = Files.lines(p)) {
+                loadToCache(lines).forEach( e -> memory.put( e.getExpression(), e ));
+                double heapSize = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
+                LOG.info("Loaded TF-IDF math elements from " + p.toString() + " [#" + memory.size() + "; Mem: "+heapSize+" MB]");
+            } catch ( IOException ioe ) {
+                LOG.fatal("Cannot read TF-IDF file " + p);
+                return;
+            }
         }
 
+        LOG.info("Finished loading references.");
+    }
+
+    public void merge(LinkedList<Path> files) {
         LOG.info("Reference loaded. Start merging.");
-        for ( int i = 1; i < files.length; i++ ) {
-            Path m = files[i];
+        for ( Path m : files ) {
             LOG.info("Loading " + m.toString());
             try ( Stream<String> lines = Files.lines(m) ) {
                 loadToCache(lines)
@@ -146,7 +146,7 @@ public class TFIDFMerger {
             return;
         }
 
-        ArrayList<Path> files = new ArrayList<>();
+        LinkedList<Path> files = new LinkedList<>();
 
         Files
                 .walk(Paths.get(config.getDataset()))
@@ -154,11 +154,21 @@ public class TFIDFMerger {
                 .filter( Files::isRegularFile )
                 .forEach( files::add );
 
-        Path[] paths = new Path[files.size()];
-        paths = files.toArray(paths);
+        LinkedList<Path> ref = new LinkedList<>();
+        LinkedList<Path> merge = new LinkedList<>();
+        Path refParent = files.getFirst().getParent();
+
+        for ( Path p : files ) {
+            if ( p.getParent().equals(refParent) )
+                ref.add(p);
+            else merge.add(p);
+        }
+
 
         TFIDFMerger merger = new TFIDFMerger(config);
-        merger.merge(paths);
+
+        merger.loadRef(ref);
+        merger.merge(merge);
         merger.storeMemory();
 
         long stop = System.currentTimeMillis() - start;
