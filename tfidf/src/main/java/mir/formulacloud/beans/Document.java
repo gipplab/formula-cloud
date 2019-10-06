@@ -1,16 +1,22 @@
 package mir.formulacloud.beans;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * @author Andre Greiner-Petter
  */
 public class Document {
+    private static final Logger LOG = LogManager.getLogger(Document.class.getName());
+
     public static final String SPLITTER_DATA = " #-<>-# ";
     public static final String SPLITTER_ENTRY = System.lineSeparator();
 
@@ -105,19 +111,25 @@ public class Document {
         return depths;
     }
 
-    public static Document parseDocument(Path p) throws IOException {
+    public static Document parseDocument(Path p) {
         Document d = new Document();
-        Files.lines(p)
-                .forEach( l -> {
-                    Matcher matcher = entryPattern.matcher(l);
-                    if ( matcher.matches() ){
-                        d.addFormula(
-                                matcher.group(IDX_EXPR),
-                                Short.parseShort(matcher.group(IDX_DEPTH)),
-                                Short.parseShort(matcher.group(IDX_FREQ))
-                        );
-                    }
-                } );
+
+        // properly release resource
+        // see also: https://stackoverflow.com/questions/43067269/java-8-path-stream-and-filesystemexception-too-many-open-files
+        try ( Stream<String> lines = Files.lines(p) ){
+            lines.forEach( l -> {
+                Matcher matcher = entryPattern.matcher(l);
+                if ( matcher.matches() ){
+                    d.addFormula(
+                            matcher.group(IDX_EXPR),
+                            Short.parseShort(matcher.group(IDX_DEPTH)),
+                            Short.parseShort(matcher.group(IDX_FREQ))
+                    );
+                }
+            });
+        } catch ( IOException ioe ){
+            LOG.error("Cannot read lines from file " + p.toString());
+        }
         return d;
     }
 }

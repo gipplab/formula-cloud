@@ -92,34 +92,30 @@ public class TFIDFCalculator {
                     set.parallelStream()
                             .flatMap( path -> {
                                 LinkedList<MathElement> elements = new LinkedList<>();
-                                try {
-                                    LOG.info("Load file " + path.toString());
-                                    Document doc = Document.parseDocument(path);
+                                LOG.info("Load file " + path.toString());
+                                Document doc = Document.parseDocument(path);
 
-                                    LinkedList<String> expressions = doc.getExpressions();
-                                    LinkedList<Short> freqs = doc.getTermFrequencies();
-                                    LinkedList<Short> depths = doc.getDepths();
-                                    int counter = 0;
+                                LinkedList<String> expressions = doc.getExpressions();
+                                LinkedList<Short> freqs = doc.getTermFrequencies();
+                                LinkedList<Short> depths = doc.getDepths();
+                                int counter = 0;
 
-                                    while ( !expressions.isEmpty() ){
-                                        MathElement entry = new MathElement(
-                                                expressions.pop(),
-                                                depths.pop(),
-                                                (int)freqs.pop(),
-                                                1
-                                        );
+                                while ( !expressions.isEmpty() ){
+                                    MathElement entry = new MathElement(
+                                            expressions.pop(),
+                                            depths.pop(),
+                                            (int)freqs.pop(),
+                                            1
+                                    );
 
-                                        elements.add(entry);
-                                        counter++;
-                                    }
-
-                                    LOG.info("Successfully extracted " + counter + " lines from " + path.toString());
-
-                                    TFIDFCalculator.PROCESSED++;
-                                    TFIDFCalculator.update();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                    elements.add(entry);
+                                    counter++;
                                 }
+
+                                LOG.info("Successfully extracted " + counter + " lines from " + path.toString());
+
+                                TFIDFCalculator.PROCESSED++;
+                                TFIDFCalculator.update();
                                 return elements.stream();
                             })
                             .collect(

@@ -27,33 +27,29 @@ public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple4<String, 
 
     @Override
     public void flatMap(Path path, Collector<Tuple4<String, Short, Integer, Integer>> collector) {
-        try {
-            Document doc = Document.parseDocument(path);
+        Document doc = Document.parseDocument(path);
 
-            LinkedList<String> expressions = doc.getExpressions();
-            LinkedList<Short> freqs = doc.getTermFrequencies();
-            LinkedList<Short> depths = doc.getDepths();
-            int counter = 0;
+        LinkedList<String> expressions = doc.getExpressions();
+        LinkedList<Short> freqs = doc.getTermFrequencies();
+        LinkedList<Short> depths = doc.getDepths();
+        int counter = 0;
 
-            while ( !expressions.isEmpty() ){
-                Tuple4<String, Short, Integer, Integer> entry = new Tuple4<>(
-                        expressions.pop(),
-                        depths.pop(),
-                        (int)freqs.pop(),
-                        1
-                );
+        while ( !expressions.isEmpty() ){
+            Tuple4<String, Short, Integer, Integer> entry = new Tuple4<>(
+                    expressions.pop(),
+                    depths.pop(),
+                    (int)freqs.pop(),
+                    1
+            );
 
-                collector.collect(entry);
-                counter++;
-            }
-
-            LOG.info("Successfully extracted " + counter + " lines from " + path.toString());
-
-            TFIDFCalculator.PROCESSED++;
-            TFIDFCalculator.update();
-        } catch (IOException e) {
-            LOG.error("Cannot parse document " + path.toString(), e);
+            collector.collect(entry);
+            counter++;
         }
+
+        LOG.info("Successfully extracted " + counter + " lines from " + path.toString());
+
+        TFIDFCalculator.PROCESSED++;
+        TFIDFCalculator.update();
     }
 
     public static Document getDocument(String docID, Path outputPath){
