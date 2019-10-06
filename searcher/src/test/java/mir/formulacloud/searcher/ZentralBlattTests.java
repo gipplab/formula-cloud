@@ -38,10 +38,11 @@ public class ZentralBlattTests {
 
     private static int minHit = 1;
 
-    private static final String idFileName = "riemannzetafiles";
-    private static final String collection = "Riemann zeta";
-//    private static final String collection = "eigenvalue";
-    private static final String expr = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
+//    private static final String idFileName = "riemannzetafiles";
+    private static final String idFileName = "eigenvalueids";
+//    private static final String collection = "Riemann zeta";
+    private static final String collection = "eigenvalue";
+//    private static final String expr = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
 //    private static final String expr = ".*mrow(mo:(,msub(mi:λ,.*),mo:,,.*,mo:,,msub(mi:λ,.*),mo:)).*";
 
     @BeforeAll

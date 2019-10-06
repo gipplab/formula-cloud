@@ -39,7 +39,7 @@ public class TFIDFLoader {
                         try {
                             return new MathElement(
                                     a[0],
-                                    Integer.parseInt(a[1]),
+                                    Short.parseShort(a[1]),
                                     Integer.parseInt(a[2]),
                                     Integer.parseInt(a[3])
                             );
@@ -49,7 +49,7 @@ public class TFIDFLoader {
                         }
                     })
                     .forEach(e -> {
-                        memory.put(e.expression, e);
+                        memory.put(e.getExpression(), e);
 //                        System.out.print("\r" + memory.size());
                     });
             double heapSize = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);

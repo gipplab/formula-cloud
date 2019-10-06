@@ -153,9 +153,9 @@ public class MathDocument {
 
             while(matcher.find()){
                 MathElement element = new MathElement(
-                        matcher.group(3),
-                        Integer.parseInt(matcher.group(2)),
-                        Integer.parseInt(matcher.group(1)),
+                        matcher.group(Constants.BX_IDX_EXPR),
+                        Short.parseShort(matcher.group(Constants.BX_IDX_DEPTH)),
+                        Integer.parseInt(matcher.group(Constants.BX_IDX_FREQ)),
                         1
                 );
 
@@ -181,7 +181,7 @@ public class MathDocument {
                         maxCountPerDepthTable.set(d-1, (int)element.getTotalFrequency());
                     }
 
-                    this.mathElements.put(element.expression, element);
+                    this.mathElements.put(element.getExpression(), element);
                 }
             }
 

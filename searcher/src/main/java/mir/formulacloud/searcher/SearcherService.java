@@ -160,12 +160,14 @@ public class SearcherService {
 
     public List<MathDocument> requestMath(List<MathDocument> documents){
         LOG.info("Collecting math for each document from BaseX.");
-//        int counter = 0;
+        int counter = 0;
 
         for (MathDocument doc : documents){
             if (doc == null) continue;
             LOG.info("Requesting math for " + doc.getDocID());
             doc.requestMathFromBasex(config);
+            counter++;
+            LOG.info("Requested math for " + counter + " files.");
 //            counter++;
 //            System.out.print(String.format(
 //                    "\rFinished %07d/%07d",
