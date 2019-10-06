@@ -24,7 +24,6 @@ public class Writer implements Runnable {
     private BlockingQueue<MathElement> queue;
     private Path outputFile;
 
-    private boolean run = true;
     private String writerID;
 
     public Writer (Path outputFile, BlockingQueue<MathElement> queue) throws IOException {
