@@ -120,10 +120,15 @@ public class TFIDFCalculator {
                             })
                             .collect(
                                     Collectors.groupingBy(
-                                            MathElement::getExpression,
-                                            Collectors.reducing( MathElement::add )
+                                        MathElement::getExpression,
+                                        Collectors.reducing( MathElement::add )
                                     )
-                            ).values().forEach( opt -> opt.ifPresent(writingQueue::add));
+                            ).values().forEach( opt -> {
+                                if ( opt.isPresent() ){
+                                    writingQueue.add(opt.get());
+                                    update(writingQueue.size());
+                                }
+                            });
                 }
         );
 
@@ -170,8 +175,24 @@ public class TFIDFCalculator {
 //    }
 
     private static long startTimer = -1;
+    private static int oldLength = -1;
 
-    public static void update(){
+    public static void update() {
+        update(-1, false);
+    }
+
+    public static void update(int length) {
+        update(length, false);
+    }
+
+    public static void updateMerger() {
+        update(-1, true);
+    }
+
+    private static int mergeCounter = 0;
+    private static final String[] symbs = new String[]{ "|", "/", "-", "\\" };
+
+    public static void update(int queueLength, boolean merger){
         if ( startTimer < 0 ) startTimer = System.currentTimeMillis();
 
         double perc = (double)PROCESSED/NUM_OF_FILES;
@@ -186,16 +207,41 @@ public class TFIDFCalculator {
         }
         if (n < 50) sb.append(">");
 
-        String i = String.format(
-                "\rFinished %05.2f%% [%-50s] %06d/%06d - Estimated Rest Time: %02d:%02d:%02d",
-                perc*100,
-                sb.toString(),
-                PROCESSED,
-                NUM_OF_FILES,
-                TimeUnit.MILLISECONDS.toHours(estimatedRestTime),
-                TimeUnit.MILLISECONDS.toMinutes(estimatedRestTime) % 60,
-                TimeUnit.MILLISECONDS.toSeconds(estimatedRestTime) % 60
-        );
+        if ( queueLength < 0 ) {
+            queueLength = oldLength;
+        } else {
+            oldLength = queueLength;
+        }
+
+        String i;
+        if ( merger ) {
+            mergeCounter = (mergeCounter+1) % 4;
+            i = String.format(
+                    "\rFinished %05.2f%% [%-50s] %06d/%06d - Estimated Rest Time: %02d:%02d:%02d  [QL: %06d] - MERGING ( %s )",
+                    perc*100,
+                    sb.toString(),
+                    PROCESSED,
+                    NUM_OF_FILES,
+                    TimeUnit.MILLISECONDS.toHours(estimatedRestTime),
+                    TimeUnit.MILLISECONDS.toMinutes(estimatedRestTime) % 60,
+                    TimeUnit.MILLISECONDS.toSeconds(estimatedRestTime) % 60,
+                    queueLength,
+                    symbs[mergeCounter]
+            );
+        } else {
+            i = String.format(
+                    "\rFinished %05.2f%% [%-50s] %06d/%06d - Estimated Rest Time: %02d:%02d:%02d  [QL: %06d]                 ",
+                    perc*100,
+                    sb.toString(),
+                    PROCESSED,
+                    NUM_OF_FILES,
+                    TimeUnit.MILLISECONDS.toHours(estimatedRestTime),
+                    TimeUnit.MILLISECONDS.toMinutes(estimatedRestTime) % 60,
+                    TimeUnit.MILLISECONDS.toSeconds(estimatedRestTime) % 60,
+                    queueLength
+            );
+        }
+
         System.out.print(i);
     }
 

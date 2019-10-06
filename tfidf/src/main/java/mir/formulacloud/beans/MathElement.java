@@ -1,5 +1,7 @@
 package mir.formulacloud.beans;
 
+import mir.formulacloud.tfidf.TFIDFCalculator;
+
 /**
  * @author Andre Greiner-Petter
  */
@@ -69,6 +71,7 @@ public class MathElement {
     public MathElement add(MathElement reference) throws IllegalArgumentException {
         this.totalFrequency += reference.totalFrequency;
         this.docFrequency += reference.docFrequency;
+        TFIDFCalculator.updateMerger();
         return this;
     }
 
