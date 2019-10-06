@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -37,35 +38,76 @@ public class ZentralBlattTests {
 
     private static int minHit = 1;
 
-//    private static final String collection = "Riemann zeta";
-    private static final String collection = "eigenvalue";
-//    private static final String expr = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
-    private static final String expr = ".*mrow(mo:(,msub(mi:λ,.*),mo:,,.*,mo:,,msub(mi:λ,.*),mo:)).*";
+    private static final String idFileName = "riemannzetafiles";
+    private static final String collection = "Riemann zeta";
+//    private static final String collection = "eigenvalue";
+    private static final String expr = ".*mrow\\(mi:ζ,mo:ivt,mrow\\(mo:\\(,.*,mo:\\)\\)\\).*";
+//    private static final String expr = ".*mrow(mo:(,msub(mi:λ,.*),mo:,,.*,mo:,,msub(mi:λ,.*),mo:)).*";
 
     @BeforeAll
     public static void init() throws IOException {
+
         // this min term freq is minHitFreq
         XQueryLoader.initMinTermFrequency(1);
 
-        System.out.println("Init all");
-
         config = new SearcherConfig();
         config.setTfidfData("/opt/zbmath/tfidf");
-        config.setDatabaseParentFolder("/opt/zbmath/empty-dump");
 //        config.setMinDocumentFrequency(3);
 
         // in minimum of 10 docs we want to get results
-        minHit = 1;
-        config.setMinDocumentFrequency(200);
-        config.setMaxDocumentFrequency(500_000);
-        config.setMinDepth(3);
+        minHit = 9;
+        config.setMinDocumentFrequency(50);
+        config.setMaxDocumentFrequency(100_000);
+        config.setMinDepth(1);
+
+        MathDocument.setZBMATHMode();
 
         service = new SearcherService(config);
-        service.init();
+
+//        TFIDFConfig tfidfconfig = new TFIDFConfig();
+//        tfidfconfig.setDataset("/opt/zbmath/empty-dump");
+
+//        DatastructureAnalyzer da = new DatastructureAnalyzer(tfidfconfig);
+//        da.init();
+        service.initBaseXServers(DB);
+
+        service.initTFIDFTables();
+
+        mathDocs = new LinkedList<>();
+
+//        addMathDocsFromFile("riemannzetafiles.txt");
+
+        Path p = Paths.get("data").resolve(idFileName);
+        List<String> ids = Files.lines(p).collect(Collectors.toList());
+
+        addMathDoc(collection, ids);
+
+        mathDocs = service.requestMath(mathDocs);
 
 
-        TFIDFConfig tfidfconfig = new TFIDFConfig();
-        tfidfconfig.setDataset("/opt/zbmath/empty-dump");
+
+        // this min term freq is minHitFreq
+//        XQueryLoader.initMinTermFrequency(1);
+//
+//        System.out.println("Init all");
+//
+//        config = new SearcherConfig();
+//        config.setTfidfData("/opt/zbmath/tfidf");
+//        config.setDatabaseParentFolder("/opt/zbmath/empty-dump");
+////        config.setMinDocumentFrequency(3);
+//
+//        // in minimum of 10 docs we want to get results
+//        minHit = 1;
+//        config.setMinDocumentFrequency(200);
+//        config.setMaxDocumentFrequency(500_000);
+//        config.setMinDepth(3);
+//
+//        service = new SearcherService(config);
+//        service.init();
+//
+//
+//        TFIDFConfig tfidfconfig = new TFIDFConfig();
+//        tfidfconfig.setDataset("/opt/zbmath/empty-dump");
 
 //        DatastructureAnalyzer da = new DatastructureAnalyzer(tfidfconfig);
 //        da.init();
@@ -73,20 +115,20 @@ public class ZentralBlattTests {
 //        service.initBaseXServers();
 //        service.initElasticSearch();
 
-        mathDocs = new LinkedList<>();
-
-        System.gc();
-
-        System.out.println("Setup empty math docs");
-        Files
-                .walk(Paths.get(tfidfconfig.getDataset()))
-                .sequential() // mandatory, otherwise the hashmaps may vary in sizes and entries
-                .filter( p -> Files.isRegularFile(p))
-                .forEach( p -> {
-                    String fileName = FilenameUtils.removeExtension(p.getFileName().toString());
-                    String folderName = p.getParent().getFileName().toString();
-                    mathDocs.add(new MathDocument(fileName, folderName, 1));
-                });
+//        mathDocs = new LinkedList<>();
+//
+//        System.gc();
+//
+//        System.out.println("Setup empty math docs");
+//        Files
+//                .walk(Paths.get(tfidfconfig.getDataset()))
+//                .sequential() // mandatory, otherwise the hashmaps may vary in sizes and entries
+//                .filter( p -> Files.isRegularFile(p))
+//                .forEach( p -> {
+//                    String fileName = FilenameUtils.removeExtension(p.getFileName().toString());
+//                    String folderName = p.getParent().getFileName().toString();
+//                    mathDocs.add(new MathDocument(fileName, folderName, 1));
+//                });
 
 //        LinkedList<String> docNames = da.getEvenProcessingOrder();
 
@@ -102,15 +144,15 @@ public class ZentralBlattTests {
 //        System.out.println("Init tables");
 //        service.initTFIDFTables();
 
-        System.out.println("Requesting math for all docs");
-        mathDocs = service.requestMath(mathDocs);
+//        System.out.println("Requesting math for all docs");
+//        mathDocs = service.requestMath(mathDocs);
     }
 
     @Test
     public void theTest(){
-        System.out.println("Test RELATIVE * IDF");
+        System.out.println("Test BM25 * IDF");
         TFIDFOptions options = new TFIDFOptions(
-                TermFrequencies.BM25, InverseDocumentFrequencies.BM25_IDF
+                TermFrequencies.BM25, InverseDocumentFrequencies.IDF
         );
         compute(options);
     }
@@ -133,14 +175,14 @@ public class ZentralBlattTests {
 //        compute(options);
 //    }
 //
-//    @Test
-//    public void normIDFTest(){
-//        System.out.println("Test NORM * IDF");
-//        TFIDFOptions options = new TFIDFOptions(
-//                TermFrequencies.NORM, InverseDocumentFrequencies.IDF
-//        );
-//        compute(options);
-//    }
+    @Test
+    public void normIDFTest(){
+        System.out.println("Test NORM * IDF");
+        TFIDFOptions options = new TFIDFOptions(
+                TermFrequencies.NORM, InverseDocumentFrequencies.IDF
+        );
+        compute(options);
+    }
 //
 //    @Test
 //    public void relPROPIDFTest(){
@@ -239,9 +281,11 @@ public class ZentralBlattTests {
                 .forEach( md -> mathDocs.add(md));
     }
 
-    private static void addMathDoc(String collection){
-        MathDocument md = new MathDocument(collection, DB);
-        mathDocs.add(md);
+    private static void addMathDoc(String collection, List<String> docIDs){
+        for ( String docID : docIDs ){
+            MathDocument md = new MathDocument(collection, DB, docID);
+            mathDocs.add(md);
+        }
     }
 
     @AfterAll

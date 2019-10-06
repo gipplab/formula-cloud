@@ -35,6 +35,9 @@ public class XQueryLoader {
             "declare variable $dataCollection := \"$$DATACOL$$\";\n" +
             "declare variable $minDocFreq := $$MINFREQ$$;\n\n";
 
+    private static String DOC_PRE_ID_CALLER =
+            "declare variable $docID := \"$$DOCID$$\";\n";
+
     private static String POST_CALLER =
             "declare variable $doc := /mws:harvest[@data-doc-id=$docid];\n" +
             "if ($doc/*) then\n" +
@@ -45,6 +48,17 @@ public class XQueryLoader {
             "declare variable $doc := /mws:mir.formulacloud.harvest[$$LIST$$];\n" +
                     "if ($doc/*) then\n" +
                     "  local:extractTerms($doc[1], $minDocFreq)";
+
+    private static String IDENTIFY_EMPTY_DOC = NS_DECLARE +
+            "mws:harvest[not(descendant::mi)]/@data-doc-id/string()";
+
+    private static String TRIGGER = "\n" +
+            "declare variable $docs := /mws:harvest[@data-collection=$dataCollection];\n" +
+            "local:extractTerms($docs, $minDocFreq)";
+
+    private static String TRIGGER_SINGLE_DOC = "\n" +
+            "declare variable $docs := /mws:harvest[@data-collection=$dataCollection]/mws:expr[contains(@url, $docID)]/..;\n" +
+            "local:extractTerms($docs, $minDocFreq)";
 
     static {
         try {
@@ -83,6 +97,16 @@ public class XQueryLoader {
 
     public static String getZBScript(String collection){
         String caller = DOC_PRE_COLLECTION_CALLER.replace(COLNAME_PATTERN, collection);
-        return NS_DECLARE + caller + zbScript;
+        return NS_DECLARE + caller + zbScript + TRIGGER;
+    }
+
+    public static String getZBScriptForSingleDoc(String collection, String docID){
+        String caller = DOC_PRE_COLLECTION_CALLER.replace(COLNAME_PATTERN, collection);
+        caller += DOC_PRE_ID_CALLER.replace(FNAME_PATTERN, docID);
+        return NS_DECLARE + caller + zbScript + TRIGGER_SINGLE_DOC;
+    }
+
+    public static String getIdentifyEmptyDocIDScript() {
+        return IDENTIFY_EMPTY_DOC;
     }
 }

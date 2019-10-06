@@ -4,11 +4,13 @@ package mir.formulacloud.beans;
  * @author Andre Greiner-Petter
  */
 public class MathElement {
-    public String expression;
+    private String expression;
 
-    public int totalFrequency;
-    public int docFrequency;
-    public int depth;
+    private int totalFrequency;
+    private int docFrequency;
+    private short depth;
+
+    private boolean isStopper = false;
 
     public MathElement(){
         this.expression = "";
@@ -17,11 +19,19 @@ public class MathElement {
         this.docFrequency = 0;
     }
 
-    public MathElement(String expression, int depth, int totalFrequency, int docFrequency){
+    public MathElement(String expression, short depth, int totalFrequency, int docFrequency){
         this.expression = expression;
         this.depth = depth;
         this.totalFrequency = totalFrequency;
         this.docFrequency = docFrequency;
+    }
+
+    public void markAsStopper(){
+        this.isStopper = true;
+    }
+
+    public boolean isStopper(){
+        return this.isStopper;
     }
 
     public int getTotalFrequency() {
@@ -32,7 +42,7 @@ public class MathElement {
         return docFrequency;
     }
 
-    public int getDepth() {
+    public short getDepth() {
         return depth;
     }
 
@@ -44,7 +54,7 @@ public class MathElement {
         this.expression = expression;
     }
 
-    public void setDepth(int depth) {
+    public void setDepth(short depth) {
         this.depth = depth;
     }
 

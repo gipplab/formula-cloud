@@ -17,12 +17,20 @@ import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.basex.query.func.math.MathE;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Andre Greiner-Petter
@@ -58,34 +66,112 @@ public class TFIDFCalculator {
     /**
      * Builds the execution plan for Flink.
      */
-    public void initExecutionPlan(LinkedList<Path> set) throws Exception {
-        Configuration flinkConfig = GlobalConfiguration.loadConfiguration("conf");
+    public void execute(LinkedList<Path> set) throws Exception {
 
-        environment = ExecutionEnvironment.createLocalEnvironment(flinkConfig);
+        ForkJoinPool outerPool = new ForkJoinPool(config.getParallelism());
+        ForkJoinPool writingPool = new ForkJoinPool(config.getNumOfOutputFiles());
 
-        DataSet<Path> source = environment.fromCollection(set);
+        BlockingQueue<MathElement> writingQueue = new LinkedBlockingQueue<>();
+        Path outputBase = Paths.get(config.getOutputF());
 
-        source
-                .flatMap( new BaseXRequestMapper() )
-                .groupBy(Document.IDX_EXPR-1) // Expression
-                .sum(Document.IDX_FREQ-1)   // TF
-                .andSum(3)                    // DF
-                .setParallelism(config.getParallelism())
-                .writeAsCsv(
-                        config.getOutputF(),
-                        "\n",
-                        ";",
-                        FileSystem.WriteMode.OVERWRITE
-                )
-                .setParallelism(config.getNumOfOutputFiles());
+        if ( Files.notExists(outputBase) ){
+            LOG.error("Output directory does not exist.");
+            return;
+        }
 
-        LOG.info("Done planning Flink schedule.");
+        LOG.info("Start writer threads.");
+        for ( int i = 1; i <= config.getNumOfOutputFiles(); i++ ){
+            Path outF = outputBase.resolve(i+"");
+            Writer writer = new Writer(outF, writingQueue);
+            writingPool.submit( writer );
+        }
+
+        LOG.info("Start processing...");
+        outerPool.submit(
+                () -> {
+                    set.parallelStream()
+                            .flatMap( path -> {
+                                LinkedList<MathElement> elements = new LinkedList<>();
+                                try {
+                                    LOG.info("Load file " + path.toString());
+                                    Document doc = Document.parseDocument(path);
+
+                                    LinkedList<String> expressions = doc.getExpressions();
+                                    LinkedList<Short> freqs = doc.getTermFrequencies();
+                                    LinkedList<Short> depths = doc.getDepths();
+                                    int counter = 0;
+
+                                    while ( !expressions.isEmpty() ){
+                                        MathElement entry = new MathElement(
+                                                expressions.pop(),
+                                                depths.pop(),
+                                                (int)freqs.pop(),
+                                                1
+                                        );
+
+                                        elements.add(entry);
+                                        counter++;
+                                    }
+
+                                    LOG.info("Successfully extracted " + counter + " lines from " + path.toString());
+
+                                    TFIDFCalculator.PROCESSED++;
+                                    TFIDFCalculator.update();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                return elements.stream();
+                            })
+                            .collect(
+                                    Collectors.groupingBy(
+                                            MathElement::getExpression,
+                                            Collectors.reducing( MathElement::add )
+                                    )
+                            ).values().forEach( opt -> opt.ifPresent(writingQueue::add));
+                }
+        );
+
+        outerPool.shutdown();
+        outerPool.awaitTermination(42, TimeUnit.HOURS);
+
+        LOG.info("Finished filling up writing queues. Inform writers.");
+        for ( int i = 1; i <= config.getNumOfOutputFiles(); i++ ){
+            MathElement stopper = new MathElement();
+            stopper.markAsStopper();
+            writingQueue.add(stopper);
+        }
+
+        LOG.info("Await termination of writing process.");
+        writingPool.shutdown();
+        writingPool.awaitTermination(2, TimeUnit.HOURS);
+
+
+//        Configuration flinkConfig = GlobalConfiguration.loadConfiguration("conf");
+//        environment = ExecutionEnvironment.createLocalEnvironment(flinkConfig);
+//
+//        DataSet<Path> source = environment.fromCollection(set);
+//
+//        source
+//                .flatMap( new BaseXRequestMapper() )
+//                .groupBy(Document.IDX_EXPR-1) // Expression
+//                .sum(Document.IDX_FREQ-1)   // TF
+//                .andSum(3)                    // DF
+//                .setParallelism(config.getParallelism())
+//                .writeAsCsv(
+//                        config.getOutputF(),
+//                        "\n",
+//                        ";",
+//                        FileSystem.WriteMode.OVERWRITE
+//                )
+//                .setParallelism(config.getNumOfOutputFiles());
+//
+//        LOG.info("Done planning Flink schedule.");
     }
 
-    public void execute() throws Exception {
-        LOG.info("Done! Trigger Flink execution. Write files to specified output.");
-        environment.execute();
-    }
+//    public void execute() throws Exception {
+//        LOG.info("Done! Trigger Flink execution. Write files to specified output.");
+//        environment.execute();
+//    }
 
     private static long startTimer = -1;
 
@@ -96,7 +182,7 @@ public class TFIDFCalculator {
         int n = (int)(perc*50);
 
         long timeSpan = System.currentTimeMillis() - startTimer; // time span until now
-        long estimatedRestTime = timeSpan - (long)(timeSpan/perc);
+        long estimatedRestTime = (long)(timeSpan/perc) - timeSpan;
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++){
@@ -137,9 +223,9 @@ public class TFIDFCalculator {
         // create and init calculator
         TFIDFCalculator calculator = new TFIDFCalculator(config);
         LinkedList<Path> fileList = calculator.retrieveFiles();
-        calculator.initExecutionPlan(fileList);
-        if ( !config.getOutputF().isEmpty() )
-            calculator.execute();
+        calculator.execute(fileList);
+//        if ( !config.getOutputF().isEmpty() )
+//            calculator.execute();
 
 //        BaseXController.closeAllClients();
         long stop = System.currentTimeMillis() - start;

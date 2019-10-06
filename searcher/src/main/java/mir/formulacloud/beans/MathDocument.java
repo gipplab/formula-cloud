@@ -77,6 +77,15 @@ public class MathDocument {
         this.maxCountPerDepthTable = new ArrayList<>();
     }
 
+    public MathDocument(String collection, String basexDB, String docID){
+        this.docID = docID;
+        this.basexDB = basexDB;
+        this.esSearchPrecision = 0;
+        this.mathElements = new HashMap<>();
+        this.xQuery = "XQuery " + XQueryLoader.getZBScriptForSingleDoc(collection, docID);
+        this.maxCountPerDepthTable = new ArrayList<>();
+    }
+
     public static void setArxivMode(){
         AVGDL = ARXIV_AVGDL;
         AVGC  = ARXIV_AVGC;

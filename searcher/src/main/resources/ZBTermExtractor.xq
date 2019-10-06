@@ -48,6 +48,3 @@ declare function local:extractTerms(
         order by $descendantDepth[1], $num descending
         return <element freq="{$num}" depth="{$descendantDepth[1]}">{$str}</element>
 };
-
-declare variable $docs := /mws:harvest[@data-collection=$dataCollection];
-local:extractTerms($docs, $minDocFreq)

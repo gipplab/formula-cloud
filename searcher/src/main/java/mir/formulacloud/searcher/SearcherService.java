@@ -300,13 +300,13 @@ public class SearcherService {
         double mem = Runtime.getRuntime().totalMemory()/Math.pow(1024,2);
         System.out.println("Finish initialization - Memory usage now: " + mem + " MB");
 
-//        try {
-////            cliSearcher.runZBMath("EigenvalueIDs");
+        try {
+            cliSearcher.runZBMath("riemannzetafiles");
 //            cliSearcher.runAll();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        cliSearcher.start();
+//        cliSearcher.start();
     }
 }

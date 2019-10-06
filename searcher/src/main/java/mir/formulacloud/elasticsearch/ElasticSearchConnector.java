@@ -87,6 +87,7 @@ public class ElasticSearchConnector {
 
         // the database must exist in the result list
         ExistsQueryBuilder existQB = QueryBuilders.existsQuery("database");
+        ExistsQueryBuilder existIsEmptyQB = QueryBuilders.existsQuery("isempty");
 
         // it should match the searchQuery with a given sloppiness
         MatchPhraseQueryBuilder matchPhraseQB = QueryBuilders.matchPhraseQuery("content", searchQuery);
@@ -95,7 +96,8 @@ public class ElasticSearchConnector {
         // connect it
         BoolQueryBuilder bqb = QueryBuilders.boolQuery();
         bqb.must(matchQB);
-        bqb.must(existQB);
+        bqb.must(existQB);           // only if it has a database attached
+        bqb.mustNot(existIsEmptyQB); // only if it is not empty (contains an identifier)
         bqb.should(matchPhraseQB);
 
         SearchSourceBuilder sb = new SearchSourceBuilder();
@@ -117,29 +119,6 @@ public class ElasticSearchConnector {
         SearchRequest request = createEnhancedSearchRequest(searchQuery, indices);
         try {
             SearchResponse response = client.search(request, RequestOptions.DEFAULT);
-            return response.getHits();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            return null;
-        }
-    }
-
-    public SearchHits retrieveAllDocuments(String index){
-        ExistsQueryBuilder existQB = QueryBuilders.existsQuery("database");
-        BoolQueryBuilder bqb = QueryBuilders.boolQuery();
-        bqb.must(existQB);
-
-        SearchSourceBuilder sb = new SearchSourceBuilder();
-        sb.query(bqb);
-        sb.size(MathDocument.ZBMATH_DOCS);
-        sb.fetchSource(INCLUDE_FIELDS, EXCLUDE_FIELDS);
-
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.indices(index);
-        searchRequest.source(sb);
-
-        try {
-            SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
             return response.getHits();
         } catch (IOException ioe) {
             ioe.printStackTrace();
