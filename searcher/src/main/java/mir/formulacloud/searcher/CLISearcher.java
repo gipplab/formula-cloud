@@ -39,7 +39,8 @@ public class CLISearcher extends SearcherService {
             CMD_RES = 6,
             CMD_DEF = 7,
             CMD_MIN_ES_HITS = 8,
-            CMD_EXPORT = 9;
+            CMD_GET_STATS = 9,
+            CMD_EXPORT = 10;
 
     private static final Pattern SET_CMDS = Pattern.compile(
             "SET INDEX ([\\w-]+)|" +
@@ -62,6 +63,7 @@ public class CLISearcher extends SearcherService {
             "GET (NUM RESULTS)|" +
             "GET(\\sALL|)|" +
             "GET (MIN HITS)|" +
+            "GET STATS (.*)|" +
             "GET TOTAL DOCS"
     );
 
@@ -229,6 +231,7 @@ public class CLISearcher extends SearcherService {
         sb.append("SET/GET NUM RESULTS <d>  - set the number of top results that should be shown").append(NL);
         sb.append("SET DEFAULT              - set all parameter to default").append(NL);
         sb.append("GET ALL                  - returns all parameter").append(NL);
+        sb.append("GET STATS <s>            - generates TF-IDF stats and saves them at <s>").append(NL);
         sb.append("GET TOTAL DOCS           - returns number of total docs in current ES index").append(NL);
         sb.append("EXPORT LAST <s>          - export the last results with MathML to given path").append(NL);
         sb.append("SEARCH <s>               - runs the program for given search query").append(NL);
@@ -320,8 +323,20 @@ public class CLISearcher extends SearcherService {
             System.out.println(showNumberOfResults);
         } else if (match.group(CMD_DEF) != null){
             printCurrentSettings();
-        } else if (match.group(CMD_MIN_ES_HITS) != null){
+        } else if (match.group(CMD_MIN_ES_HITS) != null) {
             System.out.println(minEShits);
+        } else if (match.group(CMD_GET_STATS) != null ) {
+            FrequencyAnalyzer fa = new FrequencyAnalyzer();
+            Path out = Paths.get(match.group(CMD_GET_STATS));
+            out = out.resolve("rawFrequencies.txt");
+            try {
+                System.out.println("Calculate stats.");
+                fa.orderedTotalFrequency(out);
+                System.out.println("Done. Exported to -> " + out.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Wasn't able to write output. You can try again.");
+            }
         } else {
             long numOfDocs = getNumberOfDocuments(currentIndex);
             System.out.println("Index " + currentIndex + " has " + numOfDocs + " documents.");

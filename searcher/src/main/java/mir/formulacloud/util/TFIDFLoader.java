@@ -94,9 +94,6 @@ public class TFIDFLoader {
     }
 
     public static void main(String[] args) throws IOException {
-
-
-
         TFIDFLoader loader = new TFIDFLoader();
         Files.walk(Paths.get("out"))
                 .parallel()

@@ -21,6 +21,10 @@ public class FrequencyAnalyzer {
 
     private TFIDFLoader tfidf;
 
+    public FrequencyAnalyzer() {
+        tfidf = TFIDFLoader.getLoaderInstance();
+    }
+
     public FrequencyAnalyzer(Path frequencyPath){
         TFIDFLoader.initTFIDFLoader(frequencyPath);
         tfidf = TFIDFLoader.getLoaderInstance();
