@@ -142,6 +142,7 @@ public class CLISearcher extends SearcherService {
         int numberOfDocs = getNumberOfDocuments(currentIndex);
         SearchHits hits = getSearchResults(searchQuery, currentIndex);
         List<MathDocument> mdocs = getMathResults(hits);
+        mdocs = requestMath(mdocs);
         HashMap<String, List<TFIDFMathElement>> tfidfMath = mapMathDocsToTFIDFElements(mdocs, numberOfDocs);
         List<TFIDFMathElement> results = groupTFIDFElements(tfidfMath, MathMergeFunctions.MAX, minEShits);
         lastResults = results;

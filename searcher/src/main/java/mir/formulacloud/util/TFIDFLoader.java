@@ -10,10 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -95,7 +93,7 @@ public class TFIDFLoader {
 
     public static void main(String[] args) throws IOException {
         TFIDFLoader loader = new TFIDFLoader();
-        Files.walk(Paths.get("out"))
+        Files.walk(Paths.get("/opt/zbmath/tfidf"))
                 .parallel()
                 .filter(Files::isRegularFile)
                 .forEach(loader::load);

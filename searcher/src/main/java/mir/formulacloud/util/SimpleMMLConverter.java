@@ -1,7 +1,12 @@
 package mir.formulacloud.util;
 
+import mir.formulacloud.beans.MathElement;
 import org.apache.commons.text.StringEscapeUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,8 +73,26 @@ public class SimpleMMLConverter {
         sb.append(">");
     }
 
-    public static String mmlToString(String mml){
-        return "";
+    public static String toBaseXInfo(MathElement mathElement){
+        StringBuilder sb = new StringBuilder();
+        sb.append("<expr complexity=\"").append(mathElement.getDepth()).append("\" ");
+        sb.append("term-frequency=\"").append(mathElement.getTotalFrequency()).append("\" ");
+        sb.append("document-frequency=\"").append(mathElement.getDocFrequency()).append("\"");
+        sb.append(">");
+        sb.append(stringToMML(mathElement.getExpression()));
+        sb.append("</expr>");
+        return sb.toString();
     }
+
+    public static void main(String[] args) throws IOException {
+        Path p = Paths.get("./data/huge.txt");
+        String mml = Files.readAllLines(p).get(0);
+
+        System.out.println(stringToMML(mml));
+    }
+
+//    public static String mmlToString(String mml){
+//        return "";
+//    }
 
 }
