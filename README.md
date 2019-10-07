@@ -80,3 +80,8 @@ Average depth
 ```bash
 gawk 'match($0, /(.*);(.*)/, ary) {sum += ary[2]}; END {print sum/8450496}' rawDepthFrequencies.txt
 ```
+
+Counting Total Frequnencies in parallel
+```bash
+find . -type f | xargs -n 1 -P 32 gawk 'match($0, /;([[:digit:]]+);([[:digit:]]+);([[:digit:]]+)/, arr) {sum += arr[2]}; END {print sum}'
+```
