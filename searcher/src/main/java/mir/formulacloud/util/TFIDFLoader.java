@@ -23,7 +23,7 @@ public class TFIDFLoader {
     private volatile HashMap<String, MathElement> memory;
 
     private TFIDFLoader(){
-        memory = new HashMap<>();
+        memory = new HashMap<>(350_206_974, 0.95f);
     }
 
     private void load(Path path) {
@@ -92,6 +92,7 @@ public class TFIDFLoader {
     }
 
     public static void main(String[] args) throws IOException {
+        long start = System.currentTimeMillis();
         TFIDFLoader loader = new TFIDFLoader();
         Files.walk(Paths.get("/opt/zbmath/tfidf"))
                 .parallel()
@@ -104,14 +105,25 @@ public class TFIDFLoader {
         System.out.println("Using mem: " + heapSize + "MB");
 
 
-        Scanner in = new Scanner(System.in);
-        String input;
+//        Scanner in = new Scanner(System.in);
+//        String input;
+//
+//        while (!(input = in.next()).matches("quit|exit|\\s*")){
+//            System.out.println("You entered: " + input);
+//            MathElement me = loader.memory.get(input);
+//            System.out.println(me);
+//        }
 
-        while (!(input = in.next()).matches("quit|exit|\\s*")){
-            System.out.println("You entered: " + input);
-            MathElement me = loader.memory.get(input);
-            System.out.println(me);
-        }
+        long stop = System.currentTimeMillis() - start;
+        LOG.info("Time Elapsed: " + stop + "ms");
+        System.out.println();
+        System.out.println("Done");
+
+        String format = String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(stop),
+                TimeUnit.MILLISECONDS.toSeconds(stop)%60
+        );
+        System.out.println("Time Elapsed: " + format);
 
         System.out.println("Bye bye");
     }

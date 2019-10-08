@@ -84,11 +84,34 @@ public class SimpleMMLConverter {
         return sb.toString();
     }
 
+    public static String minimizeString(String str){
+        Matcher matcher = STR_NODE_PATTERN.matcher(str);
+        StringBuilder outSB = new StringBuilder();
+        while( matcher.find() ){
+            if (matcher.group(LEAF_TAG) != null){
+                String content = matcher.group(LEAF_CONTENT);
+                content = content.matches("ivt") ? ""+INVISIBLE_TIMES : content;
+                content = content.matches("fap") ? ""+FUNCTION_APPLY : content;
+                outSB.append(content);
+            }
+        }
+        return outSB.toString();
+
+//        Pattern p = Pattern.compile(",\\w+(:|\\()");
+//        return str.replaceAll(",?\\w+([:(])|\\)+,", "");
+    }
+
     public static void main(String[] args) throws IOException {
         Path p = Paths.get("./data/huge.txt");
         String mml = Files.readAllLines(p).get(0);
 
-        System.out.println(stringToMML(mml));
+//        System.out.println(stringToMML(mml));
+        System.out.println(mml.substring(1,50));
+        System.out.println(mml.length());
+        String min = minimizeString(mml);
+        System.out.println(min.length());
+        System.out.println(min);
+
     }
 
 //    public static String mmlToString(String mml){

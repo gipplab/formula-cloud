@@ -40,7 +40,7 @@ public class CLISearcher extends SearcherService {
             CMD_DEF = 7,
             CMD_MIN_ES_HITS = 8,
             CMD_GET_STATS = 9,
-            CMD_EXPORT = 10;
+            CMD_EXPORT = 9;
 
     private static final Pattern SET_CMDS = Pattern.compile(
             "SET INDEX ([\\w-]+)|" +
