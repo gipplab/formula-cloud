@@ -88,7 +88,7 @@ public class TFIDFMerger {
         LOG.info("Kick-off Writers.");
         for ( int i = 1; i <= config.getNumOfOutputFiles(); i++ ){
             Path outF = outputBase.resolve(i+"");
-            Writer writer = new Writer(outF, writingQueue);
+            Writer<MathElement> writer = new Writer<>(outF, writingQueue);
             writerPool.submit( writer );
         }
 

@@ -4,28 +4,14 @@ import com.beust.jcommander.JCommander;
 import mir.formulacloud.beans.Document;
 import mir.formulacloud.beans.MathElement;
 import mir.formulacloud.util.TFIDFConfig;
-import mir.formulacloud.util.XQueryLoader;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.flink.api.common.operators.base.ReduceOperatorBase;
-import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.aggregation.Aggregations;
-import org.apache.flink.api.java.tuple.Tuple;
-import org.apache.flink.api.java.tuple.Tuple4;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.GlobalConfiguration;
-import org.apache.flink.core.fs.FileSystem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.basex.query.func.math.MathE;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -82,7 +68,7 @@ public class TFIDFCalculator {
         LOG.info("Start writer threads.");
         for ( int i = 1; i <= config.getNumOfOutputFiles(); i++ ){
             Path outF = outputBase.resolve(i+"");
-            Writer writer = new Writer(outF, writingQueue);
+            Writer<MathElement> writer = new Writer<>(outF, writingQueue);
             writingPool.submit( writer );
         }
 

@@ -1,6 +1,5 @@
 package mir.formulacloud.tfidf;
 
-import mir.formulacloud.beans.MathElement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,24 +8,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 
 /**
  * @author Andre Greiner-Petter
  */
-public class Writer implements Runnable {
+public class Writer<T> implements Runnable {
 
     private static final Logger LOG = LogManager.getLogger(Writer.class.getName());
     private static final String NL = System.lineSeparator();
 
-    private BlockingQueue<MathElement> queue;
+    private BlockingQueue<T> queue;
     private Path outputFile;
 
     private String writerID;
 
-    public Writer (Path outputFile, BlockingQueue<MathElement> queue) throws IOException {
+    public Writer (Path outputFile, BlockingQueue<T> queue) throws IOException {
         Files.deleteIfExists(outputFile);
         Files.createFile(outputFile);
 
@@ -41,14 +38,13 @@ public class Writer implements Runnable {
         LOG.info("["+writerID+"] Await first element...");
 
         try {
-            MathElement element = queue.take();
+            T element = queue.take();
 
             // writing cache
             LOG.info("["+writerID+"] Retrieved first element. Kick-off writing process.");
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile.toAbsolutePath().toString()))) {
-                while( !element.isStopper() ){
-                    writer.append(element.toString());
-                    writer.append(NL);
+                while( element != null ){
+                    writer.write(element.toString()+NL);
                     element = queue.take();
                 }
                 LOG.info("["+writerID+"] Found stop signal. Finish writing.");

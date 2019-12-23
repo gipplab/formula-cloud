@@ -23,7 +23,8 @@ public class TFIDFLoader {
     private volatile HashMap<String, MathElement> memory;
 
     private TFIDFLoader(){
-        memory = new HashMap<>(350_206_974, 0.95f);
+//        memory = new HashMap<>(350_206_974, 0.95f);
+        memory = new HashMap<>(65_000_000, 0.95f);
     }
 
     private void load(Path path) {
