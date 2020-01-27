@@ -89,35 +89,35 @@ public class SearcherConfig {
         return !fixedIndex.isEmpty();
     }
 
-    protected void setTfidfData(String tfidfData) {
+    public void setTfidfData(String tfidfData) {
         this.tfidfData = tfidfData;
     }
 
-    protected void setDatabaseParentFolder(String databaseParentFolder) {
+    public void setDatabaseParentFolder(String databaseParentFolder) {
         this.databaseParentFolder = databaseParentFolder;
     }
 
-    protected void setFixedIndex(String fixedIndex) {
+    public void setFixedIndex(String fixedIndex) {
         this.fixedIndex = fixedIndex;
     }
 
-    protected void setElasticsearchHost(String elasticsearchHost) {
+    public void setElasticsearchHost(String elasticsearchHost) {
         this.elasticsearchHost = elasticsearchHost;
     }
 
-    protected void setElasticsearchPort(int elasticsearchPort) {
+    public void setElasticsearchPort(int elasticsearchPort) {
         this.elasticsearchPort = elasticsearchPort;
     }
 
-    protected void setElasticsearchMaxHits(int elasticsearchMaxHits) {
+    public void setElasticsearchMaxHits(int elasticsearchMaxHits) {
         this.elasticsearchMaxHits = elasticsearchMaxHits;
     }
 
-    protected void setMinTermFrequency(int minTermFrequency) {
+    public void setMinTermFrequency(int minTermFrequency) {
         this.minTermFrequency = minTermFrequency;
     }
 
-    protected void setMinDocumentFrequency(int minDocumentFrequency) {
+    public void setMinDocumentFrequency(int minDocumentFrequency) {
         this.minDocumentFrequency = minDocumentFrequency;
     }
 
