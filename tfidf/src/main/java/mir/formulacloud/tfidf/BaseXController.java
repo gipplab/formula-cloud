@@ -27,6 +27,9 @@ public class BaseXController {
     public static int CLIENT_COUNTER = 0;
     public static int SERVER_COUNTER = 0;
 
+    private volatile static BaseXServerInstances basexTFIDFResultsServer;
+    private volatile static BaseXClient tfidfBaseXClient;
+
     private static final int DEFAULT_PORT = 1984;
 
     public synchronized static void initBaseXServers(
@@ -63,6 +66,11 @@ public class BaseXController {
             poolMapper.put(key, syncedClients);
             port++;
         }
+
+        String resultsKey = "tfidf-data";
+        basexTFIDFResultsServer = new BaseXServerInstances(resultsKey, port);
+        basexTFIDFResultsServer.start();
+        tfidfBaseXClient = establishNewConnection(resultsKey, port);
     }
 
     public static String getDBFromDocID(String docID) {
@@ -134,6 +142,10 @@ public class BaseXController {
         }
     }
 
+    public static BaseXClient getTFIDFResultsClient() {
+        return tfidfBaseXClient;
+    }
+
     public synchronized static void closeAllClients(){
         for (String db : basexServers.keySet()){
             BlockingQueue<BaseXClient> pool = poolMapper.get(db);
@@ -155,6 +167,14 @@ public class BaseXController {
                 LOG.error("Strange, cannot stop basexserver " + db, e);
             }
         }
+
+        try {
+            tfidfBaseXClient.close();
+            basexTFIDFResultsServer.stop();
+        } catch (IOException e) {
+            LOG.error("Cannot stop result database");
+        }
+
 
         LOG.info("Stopped all BaseX clients and servers!");
     }

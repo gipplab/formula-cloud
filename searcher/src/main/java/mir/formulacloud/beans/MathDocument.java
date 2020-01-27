@@ -9,6 +9,7 @@ import mir.formulacloud.util.TFIDFLoader;
 import mir.formulacloud.util.XQueryLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.basex.query.func.math.MathE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -227,8 +228,19 @@ public class MathDocument {
         }
 
         HashMap<String, TFIDFMathElement> tfidfElements = new HashMap<>();
+        LinkedList<String> requestList = new LinkedList<>();
+        for ( MathElement e : mathElements.values() ) requestList.addLast(e.getExpression());
+
+//        LOG.info("Requesting results for " + requestList.size() + " expressions.");
+//        LinkedList<MathElement> results = tfidfReg.getMathElementBulk(requestList);
+//        LOG.info("Requesting all math results.");
+
         for ( MathElement docMathElement : mathElements.values() ){
             MathElement tfidfReference = tfidfReg.getMathElement(docMathElement.getExpression());
+//        for ( int i = 0; i < requestList.size(); i++ ){
+//            MathElement docMathElement = mathElements.get(i);
+//            if ( docMathElement == null ) continue;
+//            MathElement tfidfReference = results.get(i);
 
             if ( tfidfReference == null ){
 //                LOG.warn("Not able to find frequencies value for " + docMathElement.getExpression());

@@ -60,8 +60,30 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.2.0</version>
                 <executions>
+                    <execution>
+                        <id>db-transformer</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>transform-string-db</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>
+                                        mir.formulacloud.util.SimpleMMLConverter
+                                    </mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <outputDirectory>${project.basedir}</outputDirectory>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>frequencies</id>
                         <phase>package</phase>

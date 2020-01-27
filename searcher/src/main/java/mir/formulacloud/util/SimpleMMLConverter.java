@@ -309,8 +309,12 @@ public class SimpleMMLConverter {
 //        System.out.println(test3);
 //        System.out.println(stringToMML(test3));
 
-        Path in = Paths.get("/opt/zbmath/tfidf/");
-        Path out = Paths.get("/opt/zbmath/tfidf-data/");
+//        Path in = Paths.get("/opt/zbmath/tfidf/");
+//        Path out = Paths.get("/opt/zbmath/tfidf-data/");
+
+        Path in = Paths.get(args[0]);
+        Path out = Paths.get(args[1]);
+
         TFIDFLoader.initTFIDFLoader(in);
 
         ForkJoinPool writerPool = new ForkJoinPool();
