@@ -48,6 +48,7 @@ public class Splitter {
             NUM_OF_FILES = dataAnalyzer.init();
             return dataAnalyzer.getEvenProcessingOrder();
         } catch (Exception e){
+            LOG.error("Unable to initialize data analyzer.", e);
             BaseXController.closeAllClients();
             throw e;
         }
@@ -66,24 +67,26 @@ public class Splitter {
         outerPool.submit(
                 () -> set
                         .stream()
+//                        .limit(2) // TODO test LIMIT
                         .parallel()
+//                        .sequential()
                         .map( f -> BaseXRequestMapper.getDocument(f, basePath) )
                         .filter( d -> !d.isNull() )
                         .forEach( doc -> {
-                            Path outF = basePath.resolve(doc.getDB() + "/");
-                            if ( !Files.exists(outF) ){
-                                LOG.info("DB folder does not exist. Create it now.");
-                                try {
-                                    Files.createDirectory(outF);
-                                } catch (IOException e) {
-                                    LOG.fatal("Cannot create directory, ", e);
-                                }
-                            }
-                            outF = outF.resolve(doc.getFilename());
+//                            Path outF = basePath.resolve(doc.getDB() + "/");
+//                            if ( !Files.exists(outF) ){
+//                                LOG.info("DB folder does not exist. Create it now.");
+//                                try {
+//                                    Files.createDirectory(outF);
+//                                } catch (IOException e) {
+//                                    LOG.fatal("Cannot create directory, ", e);
+//                                }
+//                            }
+                            Path outF = basePath.resolve(doc.getDB() + "-" + doc.getFilename());
                             try {
-                                LOG.info("Writing " + doc.getDB() + "/" + doc.getFilename());
-                                Files.write(outF, doc.toString().getBytes(), StandardOpenOption.CREATE);
-                                LOG.debug("Finished writing " + doc.getDB() + "/" + doc.getFilename());
+                                LOG.info("Writing " + doc.getDB() + "-" + doc.getFilename());
+                                Files.write(outF, doc.toSubexpressionsString().getBytes(), StandardOpenOption.CREATE);
+                                LOG.debug("Finished writing " + doc.getDB() + "-" + doc.getFilename());
                             } catch (IOException e) {
                                 LOG.error("Cannot write file " + doc.getFilename() + " in " + doc.getDB());
                             }

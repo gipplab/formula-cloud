@@ -15,4 +15,7 @@ public class Constants {
     public static final Pattern BASEX_ELEMENT_PATTERN =
             Pattern.compile("<element.*freq=\"(\\d+)\" depth=\"(\\d+)\">(.*?)</element>");
 
+    public static final Pattern BASEX_ELEMENT_XML_PATTERN = Pattern.compile(
+            "<element.*?freq=\"(\\d+)\" depth=\"(\\d+)\">(.*?)</element>", Pattern.DOTALL
+    );
 }

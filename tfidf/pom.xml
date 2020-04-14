@@ -58,9 +58,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.formulasearchengine.mathosphere</groupId>
-            <artifactId>basex</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>com.formulasearchengine</groupId>
+            <artifactId>basex-backend</artifactId>
+            <version>1.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.basex</groupId>
@@ -110,7 +110,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>tfidf-calculator</finalName>
+                            <finalName>tfidf-splitter</finalName>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <outputDirectory>${project.basedir}</outputDirectory>
                             <artifactSet>
@@ -132,7 +132,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>mir.formulacloud.tfidf.TFIDFCalculator</mainClass>
+                                    <mainClass>mir.formulacloud.tfidf.Splitter</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>reference.conf</resource>

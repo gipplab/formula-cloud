@@ -59,9 +59,20 @@ public class Document {
      * @param frequency
      */
     public void addFormula(String expression, Short depth, Short frequency) {
-        this.expressions.addLast(expression);
+        this.expressions.addLast(cleanExpression(expression));
         this.depths.addLast(depth);
         this.termFrequencies.addLast(frequency);
+    }
+
+    public static String cleanExpression(String expression) {
+        Pattern p = Pattern.compile(" [\\w:]+=\".*?\"|\\s*|\\n*");
+        StringBuffer sb = new StringBuffer();
+        Matcher m = p.matcher(expression);
+        while ( m.find() ) {
+            m.appendReplacement(sb, "");
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     public boolean isNull(){
@@ -74,6 +85,18 @@ public class Document {
 
     public boolean isNotEmpty() {
         return !(isNull() || isEmpty());
+    }
+
+    public String toSubexpressionsString() {
+        StringBuffer sb = new StringBuffer();
+        for ( int i = 0; i < expressions.size(); i++ ) {
+            String expr = expressions.get(i);
+            int tf = termFrequencies.get(i);
+            for ( int j = 0; j < tf; j++ ) {
+                sb.append(expr).append(System.lineSeparator());
+            }
+        }
+        return sb.toString();
     }
 
     @Override

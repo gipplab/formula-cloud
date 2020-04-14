@@ -103,7 +103,7 @@ public class BaseXRequestMapper implements FlatMapFunction<Path, Tuple4<String, 
             LOG.debug("Received result from BaseX for " + docID + " (" + db + ") - it took " + start + "ms");
 
             int counter = 0;
-            Matcher matcher = Constants.BASEX_ELEMENT_PATTERN.matcher(results);
+            Matcher matcher = Constants.BASEX_ELEMENT_XML_PATTERN.matcher(results);
 
             // go through all hits
             while (matcher.find()) {

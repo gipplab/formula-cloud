@@ -46,5 +46,5 @@ declare function local:extractTerms(
       let $num := count($descendant)
       where $num >= $minDocFreq
       order by $descendantDepth[1], $num descending
-      return <element freq="{$num}" depth="{$descendantDepth[1]}">{$str}</element>
+      return <element freq="{$num}" depth="{$descendantDepth[1]}">{$descendant[1]}</element>
 };
